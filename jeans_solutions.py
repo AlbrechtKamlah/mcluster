@@ -13,12 +13,12 @@ def smooth(y, box_pts):
     return y_smooth
 
 def jeans_equation_solution():
-  print("\nVelocites obtained solving Jean's Equations for multiple stellar population\n")
+  print(" INFO Velocites obtained solving Jean's Equations for multiple stellar population")
   g = open("inputJE.txt","r")
   if os.path.exists("inputJE.txt") == False:
     sys.exit("File inputJE.txt not found")
   else:
-    print("inputJE.txt opened successfully")
+    print(" INFO inputJE.txt opened successfully")
 
 
   ntot = int(g.readline().rstrip('\n'))

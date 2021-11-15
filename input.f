@@ -91,9 +91,9 @@
       call config_getstr(w0char, "1", key, conf);
       call char_to_arraydouble(w0char, w0);
       do i = 1, numpop
-       if (w0(i).le.1.0d0.OR.w0(i).gt.12.0d0) then
+       if (w0(i).lt.1.0d0.OR.w0(i).gt.12.0d0) then
       print*,"ERROR Mcluster:w0 ", i, "th",
-     &   " is wrong. It should be between 1.0 and 12.0"
+     &   " is wrong: ", w0(i) , ". It should be between 1.0 and 12.0"
         stop
       endif
       end do
@@ -172,7 +172,7 @@
       print*,"ERROR Mcluster:fracb ",i,"th",
      &   " is wrong. It should not be greater",
      &   " then 0.5 if  adis = 6"
-         stop
+!         stop
       endif
       end do
 
@@ -181,7 +181,7 @@
       call char_to_arrayint(eigenchar, eigen);
 
       key = "Mcluster:amin"
-      call config_getstr(aminchar, "-1.0", key, conf);
+      call config_getstr(aminchar, "-2.0", key, conf);
       call char_to_arraydouble(aminchar, amin);
 
       key = "Mcluster:amax"

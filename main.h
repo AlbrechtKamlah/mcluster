@@ -223,7 +223,7 @@ double fractalize_spherical(double D, int N, double **star, int radial, int symm
 int standalone_rzamsf(double m, double *radius);
 //int get_binaries(int nbin, double **star, double M, double rvir, int pairing, int *N, int adis, double amin, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries, double **cmb);
 //int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis, double amin, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries, FILE *TABLEkick);
-int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis, double amin, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries);
+int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis, double amin_input, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries);
 void shellsort_reverse_1d(double *array, int N);
 void shellsort_1d(double *array, int N);	
 void shellsort(double **array, int N, int k);

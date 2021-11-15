@@ -124,10 +124,14 @@ int main (int argv, char **argc) {
 	multiplearraytodouble(mclusterchar_.alphaimfchar, alpha);
 
 	double **mlim;
-	mlim = (double **)calloc(10,sizeof(double *));
-
+	mlim = (double **)calloc(10, sizeof(double *));
 	for (p=0;p<10;p++){
-		mlim[p] = (double *)calloc(MAX_MN,sizeof(double));
+		mlim[p] = (double *)calloc(MAX_MN, sizeof(double));
+		if (mlim[p] == NULL) {
+			printf("\nMemory allocation failed!\n");
+			return 0;
+		}
+//		memset(mlim[p], 0, MAX_MN*sizeof(double));
 	}
 	multiplearraytodouble(mclusterchar_.mlimimfchar, mlim);
 
@@ -303,15 +307,15 @@ int main (int argv, char **argc) {
 	}
 //eccentricities and semi-major axis storing arrays
 	double *eccbinaries;
-	eccbinaries = (double *)calloc(Nbintot,sizeof(double *));
+	eccbinaries = (double *)calloc(Nbintot,sizeof(double));
 
 	double *abinaries;
-	abinaries = (double *)calloc(Nbintot,sizeof(double *));
+	abinaries = (double *)calloc(Nbintot,sizeof(double));
 
 	double **mbin;	//component mass & stellar evol parameter array
-	mbin = (double **)calloc(Nbintot,sizeof(double *));
+	mbin = (double **)calloc(Nbintot, sizeof(double *));
 	for (j=0;j<Nbintot;j++){
-		mbin[j] = (double *)calloc(22,sizeof(double));
+		mbin[j] = (double *)calloc(22, sizeof(double));
 		if (mbin[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
@@ -462,11 +466,11 @@ int main (int argv, char **argc) {
 
 	
 	double ***rho_dens;
-	rho_dens = (double ***)calloc(numberofpop,sizeof(double **));
+	rho_dens = (double ***)calloc(numberofpop, sizeof(double **));
 	for (i=0;i<numberofpop;i++){ 
-		rho_dens[i] = (double **)calloc(N[i],sizeof(double *));
+		rho_dens[i] = (double **)calloc(N[i], sizeof(double *));
 		for (j=0;j<N[i];j++){
-			rho_dens[i][j] = (double *)calloc(2,sizeof(double));
+			rho_dens[i][j] = (double *)calloc(2, sizeof(double));
 			if (rho_dens[i][j] == NULL) {
 				printf("\nMemory allocation failed!\n");
 				return 0;
@@ -618,7 +622,7 @@ int main (int argv, char **argc) {
 		int Nunseg = N[i];
 
 		double *Mcum;
-		Mcum = (double *)calloc(N[i],sizeof(double));
+		Mcum = (double *)calloc(N[i], sizeof(double));
 		int k;
 		if ((S[i]) && !(profile[i] == 3)) {//sort masses when mass segregation parameter > 0
 			printf("\nApplying mass segregation with S = %f\n",S[i]);
@@ -701,9 +705,9 @@ int main (int argv, char **argc) {
 		//Apply Baumgardt et al. (2008) mass segregation
 		if (!(profile[i] == 3) && (S[i])) {
 			double **m_temp;
-			m_temp = (double **)calloc(Nunseg,sizeof(double *));
+			m_temp = (double **)calloc(Nunseg, sizeof(double *));
 			for (j=0;j<Nunseg;j++){
-				m_temp[j] = (double *)calloc(9,sizeof(double));
+				m_temp[j] = (double *)calloc(9, sizeof(double));
 				if (m_temp[j] == NULL) {
 					printf("\nMemory allocation failed!\n");
 					return 0;
@@ -787,13 +791,10 @@ int main (int argv, char **argc) {
 // Generate binaries properties
 	if (seed) srand48(seed);
 
-// 	FILE *TABLEkick;
-//	TABLEkick = fopen("vkick.dat","w");
-
 	printf("\n\n-----GENERATE BINARIES PROPERITES-----   \n"); 
 	for (i=0;i<numberofpop;i++){
 	
-	//used to change the correct star array; star_array will be constructed as: Nbinaries_1_gen, Nsingle_1_gen, Nbinaries_2_gen, Nsingle_2_gen, ..
+		//used to change the correct star array; star_array will be constructed as: Nbinaries_1_gen, Nsingle_1_gen, Nbinaries_2_gen, Nsingle_2_gen, ..
 		if (i == 0){
 			Nsub = 0;
 			Nbinsub = 0;
@@ -827,20 +828,7 @@ int main (int argv, char **argc) {
 				OBperiods[i] = 1;
 			}
 
-			// verify amin and amax for binaries
-
-			if(amin[i] > 0.0){
-				amin[i] *= RSUN2PC_MC;
-			} else {
-				double mleast = MMAX; //search lowest mass star
-				for (j=0;j<Ntot;j++) {
-					if (star[j][0] < mleast && star[j][0] != 0.0) mleast = star[j][0];
-				}
-				double radleast;
-				standalone_rzamsf(mleast,&radleast);
-				amin[i] *= -(radleast)*RSUN2PC_MC;
-			}
-		
+			// verify amax for binaries
 			if(amax[i] > 0.0){
 				amax[i] *= RSUN2PC_MC;
 			} else {
@@ -848,14 +836,13 @@ int main (int argv, char **argc) {
 			}
 
 			get_binaries(nbin[i], mbin, Mtotal, pairing[i], N[i], adis[i], amin[i], amax[i], rh_mcl, Ntot, eigen[i], BSE, epoch[i], Z[i], remnant, OBperiods[i], msort[i], Nsub, Nbinsub,eccbinaries, abinaries);
-//			get_binaries(nbin[i], mbin, Mtotal, pairing[i], N[i], adis[i], amin[i], amax[i], rh_mcl, Ntot, eigen[i], BSE, epoch[i], Z[i], remnant, OBperiods[i], msort[i], Nsub, Nbinsub,eccbinaries, abinaries,TABLEkick);
 			
 			if (eigen[i] || (BSE && epoch[i])) {
 				N[i] += nbin[i];
 				double **mbin_index; //sort mbin by identifier
-				mbin_index = (double **)calloc(nbin[i],sizeof(double *));
+				mbin_index = (double **)calloc(nbin[i], sizeof(double *));
 				for (j=0;j<nbin[i];j++){
-					mbin_index[j] = (double *)calloc(2,sizeof(double));
+					mbin_index[j] = (double *)calloc(2, sizeof(double));
 					if (mbin_index[j] == NULL) {
 						printf("\nMemory allocation failed!\n");
 						return 0;
@@ -869,9 +856,9 @@ int main (int argv, char **argc) {
 				shellsort(mbin_index,nbin[i],2);
 
 				double **star_index;//sort star by identifier
-				star_index = (double **)calloc(N[i],sizeof(double *));
+				star_index = (double **)calloc(N[i], sizeof(double *));
 				for (j=0;j<N[i];j++){
-					star_index[j] = (double *)calloc(2,sizeof(double));
+					star_index[j] = (double *)calloc(2, sizeof(double));
 					if (star_index[j] == NULL) {
 						printf("\nMemory allocation failed!\n");
 						return 0;
@@ -914,7 +901,6 @@ int main (int argv, char **argc) {
 		}
 	}
 
-//	fclose(TABLEkick);
 
 	double massafter=0.0;
 	for (j=0;j<Ntot;j++) massafter += star[j][0];
@@ -924,9 +910,9 @@ int main (int argv, char **argc) {
 //copy star_array to re-order it according to radial distance
 // star_temp array will be used for jeans equation solution and for spherical simmetry scaling in N-body units
 	double **star_temp;
-	star_temp = (double **)calloc(Ntot,sizeof(double *));
+	star_temp = (double **)calloc(Ntot, sizeof(double *));
 	for (j=0;j<Ntot;j++){
-		star_temp[j] = (double *)calloc(11,sizeof(double));
+		star_temp[j] = (double *)calloc(11, sizeof(double));
 		if (star_temp[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
@@ -965,9 +951,9 @@ int main (int argv, char **argc) {
 		}
 
 		double **inputJE_vect;
-		inputJE_vect = (double **)calloc(j_star,sizeof(double *)); // [0] - r; [1] - rho; [2] - cummass
+		inputJE_vect = (double **)calloc(j_star, sizeof(double *)); // [0] - r; [1] - rho; [2] - cummass
 		for (j=0;j<j_star;j++){
-			inputJE_vect[j] = (double *)calloc(3,sizeof(double));
+			inputJE_vect[j] = (double *)calloc(3, sizeof(double));
 			if (inputJE_vect[j] == NULL) {
 				printf("\nMemory allocation failed!\n");
 				return 0;
@@ -1205,7 +1191,10 @@ int main (int argv, char **argc) {
 			double pe = 0.0;
 			for (j=0;j<j_star;j++) pe = pe - 0.5*star_temp[j][0]*star_temp[j][8]; //potential energy for spherical symmetry
 			pe *= -1.0;
-			for (j=0;j<Ntot;j++) ke += 0.5*(star[j][0]/Mtotal)*(pow(star[j][4],2)+pow(star[j][5],2)+pow(star[j][6],2)); //kinetic energy
+			for (j=0;j<Ntot;j++) {
+				ke += 0.5*(star[j][0]/Mtotal)*(pow(star[j][4],2)+pow(star[j][5],2)+pow(star[j][6],2)); //kinetic energy
+			}
+
 			printf("\nRe-scaling of orbits (dt ~ N!)\n");
 			sx = 1.0/(4*(Qtot-1)*pe);
 			sv = sqrt(-Qtot/(4*(Qtot-1)*ke));
@@ -1267,7 +1256,7 @@ int main (int argv, char **argc) {
 	radial_distance_order(star_temp,j_star);
 
 	double *cummass,mommass=0.0,Rhtot;
-	cummass = (double *)calloc(Ntot,sizeof(double));
+	cummass = (double *)calloc(Ntot, sizeof(double));
 
 	for (j=0;j<j_star;j++) {
 		mommass += star_temp[j][0];
@@ -1299,7 +1288,9 @@ int main (int argv, char **argc) {
 		printf(" rvir = %f Rhtot = %f Rlast  = %f rtide = %f (pc)\n",rvir,Rhtot*rvir,last_star*rvir,rtide);
 	}
 
-	for (j=0;j<Ntot;j++) free (star_temp[j]);
+	for (j=0;j<Ntot;j++) {
+		free (star_temp[j]);
+	}
 	free(star_temp);
 
 		//Specify KZ(22) & the sse parameter
@@ -1334,18 +1325,18 @@ int main (int argv, char **argc) {
 			int Nstar = N[i] + nbin[i];
 			columns = 15;
 			double **star_temp_bin;
-			star_temp_bin = (double **)calloc(Nstar,sizeof(double *));
+			star_temp_bin = (double **)calloc(Nstar, sizeof(double *));
 			for (j=0;j<Nstar;j++){
-				star_temp_bin[j] = (double *)calloc(columns,sizeof(double));
+				star_temp_bin[j] = (double *)calloc(columns, sizeof(double));
 				if (star_temp_bin[j] == NULL) {
 					printf("\nMemory allocation failed!\n");
 					return 0;
 				}
 			}
 			double **mbin_index; //sort mbin by identifier
-			mbin_index = (double **)calloc(nbin[i],sizeof(double *));
+			mbin_index = (double **)calloc(nbin[i], sizeof(double *));
 			for (j=0;j<nbin[i];j++){
-				mbin_index[j] = (double *)calloc(2,sizeof(double));
+				mbin_index[j] = (double *)calloc(2, sizeof(double));
 				if (mbin_index[j] == NULL) {
 					printf("\nMemory allocation failed!\n");
 					return 0;
@@ -1359,9 +1350,9 @@ int main (int argv, char **argc) {
 			shellsort(mbin_index,nbin[i],2);
 
 			double **star_index;//sort star by identifier
-			star_index = (double **)calloc(N[i],sizeof(double *));
+			star_index = (double **)calloc(N[i], sizeof(double *));
 			for (j=0;j<N[i];j++){
-				star_index[j] = (double *)calloc(2,sizeof(double));
+				star_index[j] = (double *)calloc(2, sizeof(double));
 				if (star_index[j] == NULL) {
 					printf("\nMemory allocation failed!\n");
 					return 0;
@@ -1426,7 +1417,7 @@ int main (int argv, char **argc) {
 		}
 	}
 
-	for (j=0;j<Nbintot;j++) free (mbin[j]);
+	for (j=0;j<Nbintot;j++) free(mbin[j]);
 	free(mbin);
 
 	//SAVING COMPONENTS
@@ -1591,14 +1582,33 @@ int main (int argv, char **argc) {
 	if (t2-t1 >= 60.0) printf("\nElapsed time: %g min\n",(t2-t1)/60.0);	
 	else printf("\nElapsed time: %g sec\n",t2-t1);	//print stopped time
 #endif
-	
-	for (j=0;j<NMAX;j++) free (star[j]);
+
+
+	for (j=0;j<10;j++) {
+		free(alpha[j]);
+	}
+	free(alpha);
+
+	for (j=0;j<NMAX;j++) free(star[j]);
 	free(star);
-	for (j=0;j<Nbintot;j++) free (cmb[j]);
+
+	for (j=0;j<Nbintot;j++) free(cmb[j]);
 	free(cmb);
 
 	free(eccbinaries);
 	free(abinaries);
+
+	for (j=0;j<10;j++) {
+		free(mlim[j]);
+	}
+	free(mlim);
+
+//	for (j=0;j<Nbintot;j++) free(mbin[j]);
+//	free(mbin);
+
+	// free GSL stuff
+	// gsl_rng_free(rngmc);
+//	free(rng_type);
 	return 0;
 }
 
@@ -2535,7 +2545,8 @@ int generate_plummer(int N, double **star, double rtide, double rvir, double D, 
 	}
 
 	double radius_plum, aplum=1.0/rvir;
-	for (int j=0;j<N;j++) {
+	int j = 0;
+	for (j=0;j<N;j++) {
 		radius_plum = sqrt( pow(star[j+N2][1],2) + pow(star[j+N2][2],2) + pow(star[j+N2][3],2) );
 		rho_dens[j][0] = radius_plum*cc;
 		rho_dens[j][1] = (3.0*M/mtot)/(4.0*PI*pow(aplum,3)) * pow( 1.0 + pow(radius_plum,2.0) / pow(aplum,2.0) ,-5.0/2.0);
@@ -2561,9 +2572,9 @@ int generate_king(int N, double W0, double **star, double *rvir, double *rh, dou
 	double rmin = 0.2;
 	
 	double **yp;
-	yp = (double **)calloc(KMAX,sizeof(double *));
+	yp = (double **)calloc(KMAX, sizeof(double *));
 	for (i=0;i<KMAX;i++){
-		yp[i] = (double *)calloc(2,sizeof(double));
+		yp[i] = (double *)calloc(2, sizeof(double));
 		if (yp[i] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
@@ -2582,9 +2593,9 @@ int generate_king(int N, double W0, double **star, double *rvir, double *rh, dou
 	double ri;
 	
 	double **coord;
-	coord = (double **)calloc(N,sizeof(double *));
+	coord = (double **)calloc(N, sizeof(double *));
 	for (j=0;j<N;j++){
-		coord[j] = (double *)calloc(6,sizeof(double));
+		coord[j] = (double *)calloc(6, sizeof(double));
 		if (coord[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
@@ -2718,7 +2729,7 @@ int generate_king(int N, double W0, double **star, double *rvir, double *rh, dou
 	 * GENERATE STAR POSITIONS *
 	 ***************************/
 	
-	printf("\nGenerating Stars:\n");	
+	printf("\nGenerating Stars:\n");
 	
 	if (D>=3.0) {
 		for (i=0;i<N;i++) {
@@ -3834,9 +3845,9 @@ double fractalize(double D, int N, double **star, int radial, int symmetry, int 
 	printf("\nFractalizing initial conditions...\n\n");
 	
 	double **star_temp;   //temporary array for fractalized structure
-	star_temp = (double **)calloc(Ntot,sizeof(double *));
+	star_temp = (double **)calloc(Ntot, sizeof(double *));
 	for (j=0;j<Ntot;j++){
-		star_temp[j] = (double *)calloc(7,sizeof(double));
+		star_temp[j] = (double *)calloc(7, sizeof(double));
 		if (star_temp[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
@@ -4301,7 +4312,7 @@ int standalone_rzamsf(double m, double *radius){
       return 0;
 }
 
-int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis, double amin, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries){
+int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis, double amin_input, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries){
 //int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis, double amin, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries, FILE *TABLEkick){
 	int i, j, k;
 	double m1 = 0.0, m2 = 0.0, ecc, abin,rad1,rad2;
@@ -4337,279 +4348,287 @@ int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis
 	if (BSE) printf("\nSetting up binary population with Z = %.4f.\n",Z);
 	//if (epoch) printf("\nEvolving binary population for %.1f Myr.\n",epoch);
 
+	double amin;
+
 	for (i=0; i < nbin; i++) {
-			//Specify component masses
-			m1 = mbin[i+N3][1]/M;
-			m2 = mbin[i+N3][2]/M;
-			standalone_rzamsf(m1*M,&rad1);
-			standalone_rzamsf(m2*M,&rad2);
-			int num_of_iter = 0;
+		//Specify component masses
+		m1 = mbin[i+N3][1]/M;
+		m2 = mbin[i+N3][2]/M;
+		standalone_rzamsf(m1*M,&rad1);
+		standalone_rzamsf(m2*M,&rad2);
+
+		//Specify eccentricity distribution
+		if (!i && OBperiods && msort) {
+			printf("\nApplying thermal eccentricity distribution for low-mass systems and Sana & Evans (2011) eccentricity distribution for high-mass systems.\n");
+		} else if (!i){
+			printf("\nApplying thermal eccentricity distribution.\n");
+		}
+
+		newBinaryProperties:
+			if (((m1*M>=msort) || (m2*M>=msort)) && (OBperiods)) {
+				double k1, k2;
+				double elim = 0.8; //maximum eccentricity for high-mass binaries
+				double fcirc = 0.3; //fraction of circular orbits among high-mass binaries
+				k2 = (fcirc*exp(0.5*elim)-1.0)/(exp(0.5*elim)-1.0);
+				k1 = fcirc-k2;
+				ecc = drand48();
+				if (ecc < fcirc) ecc = 0.0;
+				else {
+					ecc = 2.0*log((ecc-k2)/k1);
+				}
+			} else {
+				ecc = sqrt(drand48());   // Thermal distribution f(e)=2e
+			}
+
+			if (adis == 0 || adis == 6 || adis == 1){ 
+				// verify amin for binaries
+				if(amin_input > 0.0){
+					amin = amin_input*RSUN2PC_MC;
+				} else {
+					amin = -amin_input*(rad1 + rad2)/(1.0 - ecc)*RSUN2PC_MC;
+				}
+			} 
+			if(amin > 0.5 * amax) goto newBinaryProperties;
+
+		if (!i && OBperiods && msort) {
+		  if (adis == 3 && adis != 6) {
+		    printf("\nDeriving semi-major axis distribution for binaries with primary masses > %.3f Msun from Sana et al., (2012); Oh, S., Kroupa, P., & Pflamm-Altenburg, J. (2015) period distribution.\n",msort);
+		  }  else {
+		    printf("\nDeriving semi-major axis distribution for binaries with primary masses > %.3f Msun from Sana & Evans (2011) period distribution.\n",msort);
+		  }
+	  	  if (adis == 6) {
+	  	  	printf(" Applying uniform distribution in log(a), with amin = %g and amax = %g for low mass stars.\n", amin, amax);
+	  	  }
+		}
+
+		//Specify semi-major axis
+		if (((m1*M>=msort) || (m2*M>=msort)) && (OBperiods)) {
+			if (adis == 3) {
+				double lPmin = 0.15, alpha = 0.45; //Sana et al., (2012); Oh, S., Kroupa, P., & Pflamm-Altenburg, J. (2015)
+				double ralpha = 1/alpha, eta = alpha/0.23;
+				lP = pow(pow(lPmin,alpha) + eta*drand48(),ralpha);
+	  		} else {
+			//derive from Sana & Evans (2011) period distribution for massive binaries
+				double lPmin = 0.3, lPmax = 3.5, lPbreak = 1.0; //parameters of Sana & Evans (2011) period distribution in days (eq. 5.1)
+				double Fbreak = 0.5; //fraction of binaries with periods below Pbreak
+				double xperiod = drand48();
+				if (xperiod <= Fbreak) {
+					lP = xperiod *(lPbreak-lPmin)/Fbreak + lPmin;
+				} else {
+					lP = (xperiod - Fbreak)*(lPmax-lPbreak)/(1.0-Fbreak) + lPbreak;
+				}
+	  		}
+
+			P = pow(10.0,lP);//days
+			P /= 365.25;//yr
+		
+			abin = pow((m1+m2)*M*P*P,(1.0/3.0));//AU
+			abin /= 206264.806;//pc
+//			abin /= rvir;//Nbody units				
+		} else if (adis == 0 || adis == 6) {
+			//uniform distribution in log(a), between amin and amax
+			if (!i) printf("\nApplying uniform distribution in log(a), with amin = %g and amax = %g.\n", amin, amax);
+			abin = amax/(pow(10.0,drand48()*log10(amax/amin)));
+		} else if (adis == 1) {
+			//lognormal distribution distribution for a
+			if (!i) printf("\nApplying lognormal distribution for a.\n");
+			double ak, akw, amaxim;
+			do{
+				amaxim = 100.0/206264.806;
+//				amaxim = 100.0/206264.806/rvir;
+				ak = acos(2.0/(pow(0.001,0.33) + pow(0.001,-0.33)));
+				akw = ak*(2.0*drand48() - 1.0);
+				abin = 30.0*pow((1.0 + sin(akw))/cos(akw),3.0);
+				abin /= 206264.806;//pc
+//				abin /= rvir;
+			} while (abin > amaxim);
+		} else if (adis == 2 || adis == 3) {
+			//derive from Kroupa (1995) period distribution
+			if (!i) printf("\nDeriving semi-major axis distribution from Kroupa (1995) period distribution.\n");
+			double Pmin = 10, delta = 45, eta = 2.5; //parameters of Kroupa (1995) period distribution
 			do {
-			//Specify semi-major axis
-				if (((m1*M>=msort) || (m2*M>=msort)) && (OBperiods)) {
-					if (adis == 3) {
-						double lPmin = 0.15, alpha = 0.45; //Sana et al., (2012); Oh, S., Kroupa, P., & Pflamm-Altenburg, J. (2015)
-						double ralpha = 1/alpha, eta = alpha/0.23;
-						lP = pow(pow(lPmin,alpha) + eta*drand48(),ralpha);
-			  		} else {
-					//derive from Sana & Evans (2011) period distribution for massive binaries
-						double lPmin = 0.3, lPmax = 3.5, lPbreak = 1.0; //parameters of Sana & Evans (2011) period distribution in days (eq. 5.1)
-						double Fbreak = 0.5; //fraction of binaries with periods below Pbreak
-						double xperiod = drand48();
-						if (xperiod <= Fbreak) {
-							lP = xperiod *(lPbreak-lPmin)/Fbreak + lPmin;
-						} else {
-							lP = (xperiod - Fbreak)*(lPmax-lPbreak)/(1.0-Fbreak) + lPbreak;
-						}
-			  		}
+				lP = log10(Pmin) + sqrt(delta*(exp(2.0*drand48()/eta) - 1.0));
+			} while (lP > 8.43);
+	
+			P = pow(10.0,lP);//days
+			P /= 365.25;//yr
 
-					P = pow(10.0,lP);//days
-					P /= 365.25;//yr
-				
-					abin = pow((m1+m2)*M*P*P,(1.0/3.0));//AU
-					abin /= 206264.806;//pc
-//					abin /= rvir;//Nbody units				
-				} else if (adis == 0 || adis == 6) {
-					//uniform distribution in log(a), between amin and amax
-					if (!num_of_iter && !i) printf("\nApplying uniform distribution in log(a), with amin = %g and amax = %g.\n", amin, amax);
-//					if (!num_of_iter && !i) printf("\nApplying uniform distribution in log(a), with amin = %g and amax = %g.\n", amin*rvir/RSUN2PC_MC, amax*rvir/RSUN2PC_MC);
-					abin = amax/(pow(10.0,drand48()*log10(amax/amin)));
-				} else if (adis == 1) {
-					//lognormal distribution distribution for a
-					if (!num_of_iter && !i) printf("\nApplying lognormal distribution for a.\n");
-					double ak, akw, amaxim;
-					do{
-						amaxim = 100.0/206264.806;
-//						amaxim = 100.0/206264.806/rvir;
-						ak = acos(2.0/(pow(0.001,0.33) + pow(0.001,-0.33)));
-						akw = ak*(2.0*drand48() - 1.0);
-						abin = 30.0*pow((1.0 + sin(akw))/cos(akw),3.0);
-						abin /= 206264.806;//pc
-//						abin /= rvir;
-					} while (abin > amaxim);
-				} else if (adis == 2 || adis == 3) {
-					//derive from Kroupa (1995) period distribution
-					if (!num_of_iter && !i) printf("\nDeriving semi-major axis distribution from Kroupa (1995) period distribution.\n");
-					double Pmin = 10, delta = 45, eta = 2.5; //parameters of Kroupa (1995) period distribution
-					do {
-						lP = log10(Pmin) + sqrt(delta*(exp(2.0*drand48()/eta) - 1.0));
-					} while (lP > 8.43);
-			
-					P = pow(10.0,lP);//days
-					P /= 365.25;//yr
-
-					abin = pow((m1+m2)*M*P*P,(1.0/3.0));//AU
-					abin /= 206264.806;//pc
+			abin = pow((m1+m2)*M*P*P,(1.0/3.0));//AU
+			abin /= 206264.806;//pc
 //					abin /= rvir;//Nbody units
-				} else if (adis == 4) {
-					//flat semi-major axis distribution
-					if (!num_of_iter && !i) printf("\nApplying flat semi-major axis distribution with amin = %g and amax = %g.\n", amin, amax);
-//					if (!num_of_iter && !i) printf("\nApplying flat semi-major axis distribution with amin = %g and amax = %g.\n", amin*rvir/RSUN2PC_MC, amax*rvir/RSUN2PC_MC);
+		} else if (adis == 4) {
+			//flat semi-major axis distribution
+			if (!i) printf("\nApplying flat semi-major axis distribution with amin = %g and amax = %g.\n", amin, amax);
 //					if (!i) amin /= rvir;
 //					if (!i) amax /= rvir;
-					abin = amin+drand48()*(amax-amin);
-				} else if (adis == 5) {
-					//derive from Duquennoy & Mayor (1991) period distribution
-					lPmean = 4.8;	//mean of Duquennoy & Mayor (1991) period distribution [log days]
-					lPsigma = 2.3;	//full width half maximum of Duquennoy & Mayor (1991) period distribution [log days]
-					if (!num_of_iter && !i) printf("\nDeriving semi-major axis distribution from Duquennoy & Mayor (1991) period distribution.\n");
-					do {
-						//generate two random numbers in the interval [-1,1]
-						u1 = 2.0*drand48()-1.0;
-						u2 = 2.0*drand48()-1.0;
-						
-						//combine the two random numbers
-						q = u1*u1 + u2*u2;
-					} while (q > 1.0);
+			abin = amin+drand48()*(amax-amin);
+		} else if (adis == 5) {
+			//derive from Duquennoy & Mayor (1991) period distribution
+			lPmean = 4.8;	//mean of Duquennoy & Mayor (1991) period distribution [log days]
+			lPsigma = 2.3;	//full width half maximum of Duquennoy & Mayor (1991) period distribution [log days]
+			if (!i) printf("\nDeriving semi-major axis distribution from Duquennoy & Mayor (1991) period distribution.\n");
+			do {
+				//generate two random numbers in the interval [-1,1]
+				u1 = 2.0*drand48()-1.0;
+				u2 = 2.0*drand48()-1.0;
+				
+				//combine the two random numbers
+				q = u1*u1 + u2*u2;
+			} while (q > 1.0);
 
-					p = sqrt(-2.0*log(q)/q);
-					x1 = u1*p;
-					x2 = u2*p;
-					lP1 = lPsigma*x1 + lPmean;
-					lP2 = lPsigma*x2 + lPmean;
+			p = sqrt(-2.0*log(q)/q);
+			x1 = u1*p;
+			x2 = u2*p;
+			lP1 = lPsigma*x1 + lPmean;
+			lP2 = lPsigma*x2 + lPmean;
 
-					P = pow(10,lP1);//days
-					P /= 365.25;//yr
+			P = pow(10,lP1);//days
+			P /= 365.25;//yr
 
-					abin = pow((m1+m2)*M*P*P,(1.0/3.0));//AU
-					abin /= 206264.806;//pc
-//					abin /= rvir;//Nbody units
-				}
-				//if (!num_of_iter && !i) printf("condition while:%e %e %e %e\n", amin,amax,abin*rvir/RSUN2PC_MC, rad1+rad2);
+			abin = pow((m1+m2)*M*P*P,(1.0/3.0));//AU
+			abin /= 206264.806;//pc
+		}
+
+		rperi = (abin/RSUN2PC_MC)*(1-ecc);
+
+		if (rperi < abs(amin_input)*(rad1 + rad2) && amin_input < 0.0)
+			goto newBinaryProperties;
+		if (rperi < 2.0*(rad1 + rad2) && amin_input > 0.0)
+			goto newBinaryProperties;
 
 
-				if (!num_of_iter && !i && OBperiods && msort) {
-				  if (adis == 3 && adis != 6) {
-				    printf("\nDeriving semi-major axis distribution for binaries with primary masses > %.3f Msun from Sana et al., (2012); Oh, S., Kroupa, P., & Pflamm-Altenburg, J. (2015) period distribution.\n",msort);
-				  }  else {
-				    printf("\nDeriving semi-major axis distribution for binaries with primary masses > %.3f Msun from Sana & Evans (2011) period distribution.\n",msort);
-				  }
-			  	  if (adis == 6) {
-			  	  	printf(" Applying uniform distribution in log(a), with amin = %g and amax = %g for low mass stars.\n", amin, amax);
-//			  	  	printf(" Applying uniform distribution in log(a), with amin = %g and amax = %g for low mass stars.\n", amin*rvir/RSUN2PC_MC, amax*rvir/RSUN2PC_MC);
-			  	  }
-				}
-
-				//Specify eccentricity distribution
-				if (!num_of_iter && !i && OBperiods && msort) {
-					printf(" Applying thermal eccentricity distribution for low-mass systems and Sana & Evans (2011) eccentricity distribution for high-mass systems.\n");
-				} else if (!num_of_iter && !i){
-					 printf(" Applying thermal eccentricity distribution.\n");
-				}
-					
-				if (((m1*M>=msort) || (m2*M>=msort)) && (OBperiods)) {
-					double k1, k2;
-					double elim = 0.8; //maximum eccentricity for high-mass binaries
-					double fcirc = 0.3; //fraction of circular orbits among high-mass binaries
-					k2 = (fcirc*exp(0.5*elim)-1.0)/(exp(0.5*elim)-1.0);
-					k1 = fcirc-k2;
-					ecc = drand48();
-					if (ecc < fcirc) ecc = 0.0;
-					else {
-						ecc = 2.0*log((ecc-k2)/k1);
-					}
-				} else {
-					ecc = sqrt(drand48());   // Thermal distribution f(e)=2e
-				}			//ecc = 0.0;   // all circular 
-
-				rperi = (abin/RSUN2PC_MC)*(1-ecc); //abin in Nbody units, abin*rvir in pc, abin*rvir/RSUN2PC_MC in Rsun
-//				rperi = (abin*rvir/RSUN2PC_MC)*(1-ecc); //abin in Nbody units, abin*rvir in pc, abin*rvir/RSUN2PC_MC in Rsun
-				num_of_iter += 1;
-			} while ( rperi < 1.1*(rad1 + rad2) ); 
-
-			//Apply Kroupa (1995) eigenevolution
-			if (eigen==1) {
-				if (!i) printf(" Applying Kroupa (1995) eigenevolution for short-period binaries\n");
-				if (!(OBperiods && ((m1*M>=msort) || (m2*M>=msort)))) {
-					if (m1>=m2) eigenevolution_old(&m1, &m2, &ecc, &abin, M);
-					else  eigenevolution_old(&m2, &m1, &ecc, &abin, M);
+		//Apply Kroupa (1995) eigenevolution
+		if (eigen==1) {
+			if (!i) printf("\nApplying Kroupa (1995) eigenevolution for short-period binaries\n");
+			if (!(OBperiods && ((m1*M>=msort) || (m2*M>=msort)))) {
+				if (m1>=m2) eigenevolution_old(&m1, &m2, &ecc, &abin, M);
+				else  eigenevolution_old(&m2, &m1, &ecc, &abin, M);
 //					if (m1>=m2) eigenevolution_old(&m1, &m2, &ecc, &abin, M, rvir);
 //					else  eigenevolution_old(&m2, &m1, &ecc, &abin, M, rvir);
-				}
 			}
+		}
 
-			//Apply new eigenevolution and feeding algorithm - Kroupa (2013), rewied in Belloni et al. (2017) 
-			if (eigen==2) {
-				if (!i) printf("\nApplying new eigenevolution and feeding algorithm - Kroupa (2013)\n");
-				if ((OBperiods && ((m1*M>=msort) || (m2*M>=msort)))){
-					double emax;
-					do{
-						ecc = pow(drand48(),1.8181);
-						emax = 1.0 - pow(P * 365.25 / 2.0,-0.66);
-						if(emax < 0.0) emax=pow(10,-3)*drand48();
-					}while(ecc > emax);
-				}
-				if ((OBperiods && ((m1*M<=msort) || (m2*M<=msort)))) {
-					if (m1>=m2) eigenevolution_new(&m1, &m2, &ecc, &abin, M);
-					else  eigenevolution_new(&m2, &m1, &ecc, &abin, M);
+		//Apply new eigenevolution and feeding algorithm - Kroupa (2013), rewied in Belloni et al. (2017) 
+		if (eigen==2) {
+			if (!i) printf("\nApplying new eigenevolution and feeding algorithm - Kroupa (2013)\n");
+			if ((OBperiods && ((m1*M>=msort) || (m2*M>=msort)))){
+				double emax;
+				do{
+					ecc = pow(drand48(),1.8181);
+					emax = 1.0 - pow(P * 365.25 / 2.0,-0.66);
+					if(emax < 0.0) emax=pow(10,-3)*drand48();
+				}while(ecc > emax);
+			}
+			if ((OBperiods && ((m1*M<=msort) || (m2*M<=msort)))) {
+				if (m1>=m2) eigenevolution_new(&m1, &m2, &ecc, &abin, M);
+				else  eigenevolution_new(&m2, &m1, &ecc, &abin, M);
 //					if (m1>=m2) eigenevolution_new(&m1, &m2, &ecc, &abin, M, rvir);
 //					else  eigenevolution_new(&m2, &m1, &ecc, &abin, M, rvir);
-				}
 			}
+		}
 
+		//Apply Binary Star Evolution (Hurley, Tout & Pols 2002)
+		if (BSE && epoch) {
+			int kw[2] = {1, 1};  //stellar type
+			double mass[2];  //initial mass
+			double mt[2];    //actual mass
+			double r[2] = {0.0, 0.0};     //radius
+			double lum[2] = {0.0, 0.0};   //luminosity
+			double mc[2] = {0.0, 0.0};    //core mass
+			double rc[2] = {0.0, 0.0};    //core radius
+			double menv[2] = {0.0, 0.0};  //envelope mass
+			double renv[2] = {0.0, 0.0};  //envelope radius
+			double ospin[2] = {0.0, 0.0};		//spin
+			double epoch1[2] = {0.0, 0.0};    //time spent in current evolutionary state
+			double tms[2] = {0.0, 0.0};   //main-sequence lifetime
+			double tphys = 0.0;       //initial age
+			double tphysf = epoch;//final age
+			double dtp = epoch+1; //data store value, if dtp>tphys no data will be stored
+			double z = Z;      //metallicity
 
-			//Apply Binary Star Evolution (Hurley, Tout & Pols 2002)
-			if (BSE && epoch) {
-				int kw[2] = {1, 1};  //stellar type
-				double mass[2];  //initial mass
-				double mt[2];    //actual mass
-				double r[2] = {0.0, 0.0};     //radius
-				double lum[2] = {0.0, 0.0};   //luminosity
-				double mc[2] = {0.0, 0.0};    //core mass
-				double rc[2] = {0.0, 0.0};    //core radius
-				double menv[2] = {0.0, 0.0};  //envelope mass
-				double renv[2] = {0.0, 0.0};  //envelope radius
-				double ospin[2] = {0.0, 0.0};		//spin
-				double epoch1[2] = {0.0, 0.0};    //time spent in current evolutionary state
-				double tms[2] = {0.0, 0.0};   //main-sequence lifetime
-				double tphys = 0.0;       //initial age
-				double tphysf = epoch;//final age
-				double dtp = epoch+1; //data store value, if dtp>tphys no data will be stored
-				double z = Z;      //metallicity
-
-				mass[0] = m1*M;  //initial mass of primary
-				mass[1] = m2*M; //initial mass of secondary
-				mt[0] = mass[0];    //actual mass
-				mt[1] = mass[1];    //actual mass
-				vkick[0] = 0.0;
-				vkick[1] = 0.0;
-				double vs1[3], vs2[3];			
+			mass[0] = m1*M;  //initial mass of primary
+			mass[1] = m2*M; //initial mass of secondary
+			mt[0] = mass[0];    //actual mass
+			mt[1] = mass[1];    //actual mass
+			vkick[0] = 0.0;
+			vkick[1] = 0.0;
+			double vs1[3], vs2[3];			
 //				abin *= rvir; //pc
-				abin *= 206264.806; //AU
-				P = sqrt(pow(abin, 3.0)/(mt[0]+mt[1]));//yr
-				P *= 365.25;//days
-				eccold=ecc;
-				double eccold1=ecc;
-				abinold=abin;
-				double Pold=P;
-			
-				printf("\neccold %f abinold [AU] %f Pold [day] %f mt0 [MSun] %f mt1 [MSun] %f m1 [Nbody] %f m2 [Nbody] %f\n", ecc,abin,Pold,mt[0],mt[1],m1,m2);
-			
-				evolv2_(kw,mass,mt,r,lum,mc,rc,menv,renv,ospin,epoch1,tms,&tphys,&tphysf,&dtp,&z,zpars,&P,&ecc,vkick,vs1,vs2);
-	
-				P /= 365.25;//yr
-			
-				abin = pow((mt[0]+mt[1])*P*P,(1.0/3.0));//AU
-				abin /= 206264.806;//pc
+			abin *= 206264.806; //AU
+			P = sqrt(pow(abin, 3.0)/(mt[0]+mt[1]));//yr
+			P *= 365.25;//days
+			eccold=ecc;
+			double eccold1=ecc;
+			abinold=abin;
+			double Pold=P;
+		
+			printf("\neccold %f abinold [AU] %f Pold [day] %f mt0 [MSun] %f mt1 [MSun] %f m1 [Nbody] %f m2 [Nbody] %f\n", ecc,abin,Pold,mt[0],mt[1],m1,m2);
+		
+			evolv2_(kw,mass,mt,r,lum,mc,rc,menv,renv,ospin,epoch1,tms,&tphys,&tphysf,&dtp,&z,zpars,&P,&ecc,vkick,vs1,vs2);
 
-				printf("ecc %f abin [AU] %.8e P [day] %f m1 [MSun] %f m2 [MSun] %f kw1 %i kw2 %i \n", ecc,abin*206264.806,P*365.25,mt[0],mt[1],kw[0],kw[1]);
+			P /= 365.25;//yr
+		
+			abin = pow((mt[0]+mt[1])*P*P,(1.0/3.0));//AU
+			abin /= 206264.806;//pc
 
-				printf("vs1 [km/s] %f %f %f\n", vs1[0],vs1[1],vs1[2]);
-				printf("vs2 [km/s] %f %f %f\n", vs2[0],vs2[1],vs2[2]);
-				printf("eventual kick v1 [km/s] %f v2 [km/s] %f\n",vkick[0],vkick[1]);
+			printf("ecc %f abin [AU] %.8e P [day] %f m1 [MSun] %f m2 [MSun] %f kw1 %i kw2 %i \n", ecc,abin*206264.806,P*365.25,mt[0],mt[1],kw[0],kw[1]);
 
-				if (sqrt(pow(vs1[0],2)+pow(vs1[1],2)+pow(vs1[2],2)) != vkick[0]) printf("Vkick 1 not equal!!!\n");
-				if (sqrt(pow(vs2[0],2)+pow(vs2[1],2)+pow(vs2[2],2)) != vkick[1]) printf("Vkick 2 not equal!!!\n");
+			printf("vs1 [km/s] %f %f %f\n", vs1[0],vs1[1],vs1[2]);
+			printf("vs2 [km/s] %f %f %f\n", vs2[0],vs2[1],vs2[2]);
+			printf("eventual kick v1 [km/s] %f v2 [km/s] %f\n",vkick[0],vkick[1]);
+
+			if (sqrt(pow(vs1[0],2)+pow(vs1[1],2)+pow(vs1[2],2)) != vkick[0]) printf("Vkick 1 not equal!!!\n");
+			if (sqrt(pow(vs2[0],2)+pow(vs2[1],2)+pow(vs2[2],2)) != vkick[1]) printf("Vkick 2 not equal!!!\n");
 
 //				if(vkick[0])
 //				fprintf(TABLEkick,"%.16E\t %i\t% .16E\t% .16E\t% .16E\t %i\t %f\t %f\t \n",mt[0], kw[0], vs1[0],vs1[1],vs1[2], 2, epoch, z);
 //				if(vkick[1])
 //				fprintf(TABLEkick,"%.16E\t %i\t% .16E\t% .16E\t% .16E\t %i\t %f\t %f\t \n",mt[1], kw[1], vs2[0],vs2[1],vs2[2], 2, epoch, z);
 
-				if(ecc < 0.0) {
-					ecc=2.0;
-					abin=abinold;
-				}
-
-/*
-				if (!star[2*i+N2][0] || !star[2*i+1+N2][0]) {
-					nbin--; //one binary less because one component went supernova
-				
-					double startemp[15]; //temporarily save surviving companion
-					if (!star[2*i+N2][0]) {
-						for (k=0;k<15;k++)  startemp[k] = star[2*i+1+N2][k];
-					} else {
-						for (k=0;k<15;k++)  startemp[k] = star[2*i+N2][k];
-					}
-					
-					for (j=2*i+2;j<*N;j++) {
-						for (k=0;k<15;k++) star[j-2+N2][k] = star[j+N2][k]; //move all remaining stars two positions up in the array
-					}
-					
-					*N = *N-1; //reduce total number of stars by one, i.e. remove massless supernova remnant from computations
-
-					for (k=0;k<15;k++) star[*N-1+N2][k] = startemp[k]; //make surviving companion the last particle in array
-
-					i--; //reduce binary counter
-				} 
-*/
-				if (kw[0] == 15){
-					m1 = 1E-16;
-				} else{
-					m1 = mt[0]/M; //Nbody units
-				}
-				if (kw[1] == 15){
-					m2 = 1E-16;
-				} else{
-					m2 = mt[1]/M; //Nbody units
-				}
-
+			if(ecc < 0.0) {
+				ecc=2.0;
+				abin=abinold;
 			}
 
-			mbin[i+N3][1] = m1*M;
-			mbin[i+N3][2] = m2*M;
-			mbin[i+N3][20] = ecc;
-			mbin[i+N3][21] = abin;
+/*
+			if (!star[2*i+N2][0] || !star[2*i+1+N2][0]) {
+				nbin--; //one binary less because one component went supernova
+			
+				double startemp[15]; //temporarily save surviving companion
+				if (!star[2*i+N2][0]) {
+					for (k=0;k<15;k++)  startemp[k] = star[2*i+1+N2][k];
+				} else {
+					for (k=0;k<15;k++)  startemp[k] = star[2*i+N2][k];
+				}
+				
+				for (j=2*i+2;j<*N;j++) {
+					for (k=0;k<15;k++) star[j-2+N2][k] = star[j+N2][k]; //move all remaining stars two positions up in the array
+				}
+				
+				*N = *N-1; //reduce total number of stars by one, i.e. remove massless supernova remnant from computations
+
+				for (k=0;k<15;k++) star[*N-1+N2][k] = startemp[k]; //make surviving companion the last particle in array
+
+				i--; //reduce binary counter
+			} 
+*/
+			if (kw[0] == 15){
+				m1 = 1E-16;
+			} else{
+				m1 = mt[0]/M; //Nbody units
+			}
+			if (kw[1] == 15){
+				m2 = 1E-16;
+			} else{
+				m2 = mt[1]/M; //Nbody units
+			}
+
+		}
+
+		mbin[i+N3][1] = m1*M;
+		mbin[i+N3][2] = m2*M;
+		mbin[i+N3][20] = ecc;
+		mbin[i+N3][21] = abin;
 	}
 	return 0;
 
@@ -4684,13 +4703,6 @@ int decomposition_orbit(int nbin, double **star, double M, double rvir, double R
 			star[2*i+N2][0] = m1*M;
 			star[2*i+1+N2][0] = m2*M;
 
-//		if(eccbinaries[i+N3]==2.0){
-//		double epot,ekin;
-//		epot -= star[2*i+1+N2][0]*star[2*i+N2][0]/sqrt(pow(rrel[0],2)+pow(rrel[1],2)+pow(rrel[2],2));
-//		ekin += (star[2*i+1+N2][0]) * ( pow(star[2*i+1+N2][4],2) + pow(star[2*i+1+N2][5],2) + pow(star[2*i+1+N2][6],2) );
-//		ekin += (star[2*i+N2][0]) * ( pow(star[2*i+N2][4],2) + pow(star[2*i+N2][5],2) + pow(star[2*i+N2][6],2) );
-//		printf("m1 %f m2 %f epot %f ekin %f epot+ekin %f\n", m1*M,m2*M,epot,ekin,epot+ekin);
-//	}
 
 
 		eccbinaries[i+N3] = ecc;
@@ -4779,9 +4791,9 @@ int order(double **star, int N, double M, double msort, int pairing, int N2, dou
 	int Nhighmass;
 	int columns = 15;
 	double **star_temp;
-	star_temp = (double **)calloc(N,sizeof(double *));
+	star_temp = (double **)calloc(N, sizeof(double *));
 	for (j=0;j<N;j++){
-		star_temp[j] = (double *)calloc(columns,sizeof(double));
+		star_temp[j] = (double *)calloc(columns, sizeof(double));
 		star_temp[j][0] = 0.0;
 		if (star_temp[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
@@ -4790,9 +4802,9 @@ int order(double **star, int N, double M, double msort, int pairing, int N2, dou
 	}
 	
 	double **masses;
-	masses = (double **)calloc(N,sizeof(double *));
+	masses = (double **)calloc(N, sizeof(double *));
 	for (j=0;j<N;j++){
-		masses[j] = (double *)calloc(2,sizeof(double));
+		masses[j] = (double *)calloc(2, sizeof(double));
 		if (masses[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
@@ -4819,7 +4831,7 @@ int order(double **star, int N, double M, double msort, int pairing, int N2, dou
 		}
 	}
       // Mask to show which mass is already used, 1 means used
-      int *mask = (int*)calloc(N,sizeof(int));
+      int *mask = (int*)calloc(N, sizeof(int));
       if (mask == NULL) {
         printf("\nMemory allocation failed!\n");
         return 0;
@@ -4830,9 +4842,9 @@ int order(double **star, int N, double M, double msort, int pairing, int N2, dou
     //Long Wang add pairing=3 for uniform mass ratio distribution of O type binaries (Kiminki & Kobulnicky 2012; Sana et al., 2012; Kobulnicky et al. 2014)
     // f(q) ~ q^n  (n = 0; 0.1<=q<=1.0)
     if (pairing==3) {
-      double **mmrand = (double**)calloc(N,sizeof(double *));
+      double **mmrand = (double**)calloc(N, sizeof(double *));
       for (j=0;j<N;j++){
-		mmrand[j] = (double *)calloc(2,sizeof(double));
+		mmrand[j] = (double *)calloc(2, sizeof(double));
 		if (mmrand[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
@@ -4845,8 +4857,8 @@ int order(double **star, int N, double M, double msort, int pairing, int N2, dou
       j = 0;
       int ileft = 0, ileftsing = 0;
       for (i=0;i<N;i++) {
-       	s = drand48();
-  		if (s < Ps){ // the star is considered as a single
+	s = drand48();
+	if (s < Ps){ // the star is considered as a single
             star_temp[N-1-ileftsing][0] = star[(int) masses[i][1]][0];
             star_temp[N-1-ileftsing][1] = star[(int) masses[i][1]][1];
             star_temp[N-1-ileftsing][2] = star[(int) masses[i][1]][2];
@@ -4862,9 +4874,9 @@ int order(double **star, int N, double M, double msort, int pairing, int N2, dou
             star_temp[N-1-ileftsing][12] = star[(int) masses[i][1]][12];
             star_temp[N-1-ileftsing][13] = star[(int) masses[i][1]][13];
             star_temp[N-1-ileftsing][14] = star[(int) masses[i][1]][14];
-          	mask[i] = 1;
-        	ileftsing++;
-  	    }
+            mask[i] = 1;
+            ileftsing++;
+	}
       }
 
       for (i=0;i<N;i++) {
@@ -4890,8 +4902,8 @@ int order(double **star, int N, double M, double msort, int pairing, int N2, dou
             j++;
             // Find the second one based on uniform mass ratio
             if (i<N-1) {
-				double mpair = (drand48()*0.9+0.1)*masses[i][0];
-				// second index
+		double mpair = (drand48()*0.9+0.1)*masses[i][0];
+		// second index
 				int k = -1;
 				// find closest one
 				int k1 = i+1;
@@ -5011,6 +5023,9 @@ int order(double **star, int N, double M, double msort, int pairing, int N2, dou
         star_temp[j+i][14] = star[(int) mmrand[i][1]][14];
       }
 
+      for (j=0;j<N;j++) free (mmrand[j]);
+      	free(mmrand);
+
     }else {
     	if(pairing) {
       double s, Ps;
@@ -5120,6 +5135,8 @@ int order(double **star, int N, double M, double msort, int pairing, int N2, dou
 	for (j=0;j<N;j++) free (star_temp[j]);
 	free(star_temp);
 
+	free(mask);
+
 	if (pairing==2) segregate(star, Nhighmass, 0.0, N2);
 	
 	return 0;
@@ -5130,9 +5147,9 @@ int segregate(double **star, int N, double S, int N2){
 	
 	int columns = 15;
 	double **star_temp;
-	star_temp = (double **)calloc(N,sizeof(double *));
+	star_temp = (double **)calloc(N, sizeof(double *));
 	for (j=0;j<N;j++){
-		star_temp[j] = (double *)calloc(columns,sizeof(double));
+		star_temp[j] = (double *)calloc(columns, sizeof(double));
 		star_temp[j][0] = 0.0;
 		if (star_temp[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
@@ -5141,9 +5158,9 @@ int segregate(double **star, int N, double S, int N2){
 	}
 	
 	double **masses;
-	masses = (double **)calloc(N,sizeof(double *));
+	masses = (double **)calloc(N, sizeof(double *));
 	for (j=0;j<N;j++){
-		masses[j] = (double *)calloc(2,sizeof(double));
+		masses[j] = (double *)calloc(2, sizeof(double));
 		if (masses[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
@@ -5222,9 +5239,9 @@ int energy_order(double **star, int N, int Nstars, int N2){
 	
 	int columns = 15;
 	double **star_temp;
-	star_temp = (double **)calloc(N,sizeof(double *));
+	star_temp = (double **)calloc(N, sizeof(double *));
 	for (j=0;j<N;j++){
-		star_temp[j] = (double *)calloc(columns,sizeof(double));
+		star_temp[j] = (double *)calloc(columns, sizeof(double));
 		star_temp[j][0] = 0.0;
 		if (star_temp[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
@@ -5233,9 +5250,9 @@ int energy_order(double **star, int N, int Nstars, int N2){
 	}
 	
 	double **energies;
-	energies = (double **)calloc(N,sizeof(double *));
+	energies = (double **)calloc(N, sizeof(double *));
 	for (j=0;j<N;j++){
-		energies[j] = (double *)calloc(2,sizeof(double));
+		energies[j] = (double *)calloc(2, sizeof(double));
 		energies[j][0] = 0.0;
 		if (energies[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
@@ -5299,24 +5316,24 @@ int radial_distance_order(double **star, int N){
 
 	int columns = 11;
 	double **star_temp;
-	star_temp = (double **)calloc(N,sizeof(double *));
+	star_temp = (double **)calloc(N, sizeof(double *));
 	for (j=0;j<N;j++){
-		star_temp[j] = (double *)calloc(columns,sizeof(double));
-		star_temp[j][0] = 0.0;
+		star_temp[j] = (double *)calloc(columns, sizeof(double));
 		if (star_temp[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
 		}
+		star_temp[j][0] = 0.0;
 	}
 	double **radial_distance;
-	radial_distance = (double **)calloc(N,sizeof(double *));
+	radial_distance = (double **)calloc(N, sizeof(double *));
 	for (j=0;j<N;j++){
-		radial_distance[j] = (double *)calloc(2,sizeof(double));
-		radial_distance[j][0] = 0.0;
+		radial_distance[j] = (double *)calloc(2, sizeof(double));
 		if (radial_distance[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
 		}
+		radial_distance[j][0] = 0.0;
 	}
 	for (i=0;i<N;i++) {
 		radial_distance[i][0] = sqrt(pow(star[i][1],2)+pow(star[i][2],2)+pow(star[i][3],2));
@@ -5366,14 +5383,14 @@ int randomize(double **star, int N, int N2){
 	
 	int columns = 15;
 	double **star_temp;
-	star_temp = (double **)calloc(N,sizeof(double *));
+	star_temp = (double **)calloc(N, sizeof(double *));
 	for (j=0;j<N;j++){
-		star_temp[j] = (double *)calloc(columns,sizeof(double));
-		star_temp[j][0] = 0.0;
+		star_temp[j] = (double *)calloc(columns, sizeof(double));
 		if (star_temp[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
 		}
+		star_temp[j][0] = 0.0;
 	}
 	
 	for (i=0;i<N;i++) {//copying randomized to temporary array
@@ -5748,9 +5765,9 @@ double interpl_density(int N, int Ni, int i, int j_star, double **inputJE_vect, 
 	int kmax1 = N, kmax2=Ni;
 	double **inputJE_vect_temp;
 
-	inputJE_vect_temp = (double **)calloc(N,sizeof(double *)); // [0] - r; [1] - rho; [2] - cummass
+	inputJE_vect_temp = (double **)calloc(N, sizeof(double *)); // [0] - r; [1] - rho; [2] - cummass
 	for (j=0;j<N;j++){
-		inputJE_vect_temp[j] = (double *)calloc(2,sizeof(double));
+		inputJE_vect_temp[j] = (double *)calloc(2, sizeof(double));
 		if (inputJE_vect_temp[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
