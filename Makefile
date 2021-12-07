@@ -1,5 +1,5 @@
 OPTIMIZATION = -O3
-FFLAGS = $(HEADERS:%=-I%) -fbounds-check -mcmodel=medium -fopenmp -fPIC
+FFLAGS = $(HEADERS:%=-I%) -fbounds-check -mcmodel=medium -fopenmp -fPIC -lgfortran
 LIBS = -lm -lc -lstdc++
 
 FHEAD = BSE/const_bse.h BSE/zdata.h
