@@ -31,4 +31,4 @@ mcluster: $(FOBJ) $(FHEAD)
 
 clean:
 	rm --f BSE/*.o mcluster
-	rm -f *.dat *.out dat.10
+	rm -f *.dat *.out dat.10 input.o
