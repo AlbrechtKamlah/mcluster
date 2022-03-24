@@ -618,7 +618,8 @@ int main (int argv, char **argc) {
 			if (star[j+Nsub][0] > mhighest) mhighest = star[j+Nsub][0];
 		}
 		mmeancom /= N[i];
-		int Nseg = ceil(N[i]*mmeancom/mlowest);  //number of necessary pos & vel pairs for Baumgardt et al. (2008) mass segregation routine
+		// int Nseg = ceil(N[i]*mmeancom/mlowest);  //number of necessary pos & vel pairs for Baumgardt et al. (2008) mass segregation routine
+		int Nseg = N[i];
 		int Nunseg = N[i];
 
 		double *Mcum;
@@ -631,7 +632,7 @@ int main (int argv, char **argc) {
 			for (j=1;j<N[i];j++) {//calculate cumulative mass function Mcum
 				Mcum[j] = Mcum[j-1] + star[j+Nsub][0];
 			}
-			N[i] = Nseg;
+			// N[i] = Nseg;
 		}
 
 		double cc;
@@ -732,11 +733,11 @@ int main (int argv, char **argc) {
 			int nlow, nhigh, nrandom;
 			for (k=0;k<Nunseg;k++) {
 				nhigh = Nseg*Mcum[k];
-				if (i) {
-					nlow = Nseg*Mcum[k-1];
-				} else {
-					nlow = 0;
-				}
+				// if (i) {
+					// nlow = Nseg*Mcum[k-1];
+				// } else {
+				nlow = 0;
+				// }
 				nrandom = (nhigh-nlow)*drand48()+nlow;
 				star[k+Nsub][0] = m_temp[k][0];
 				star[k+Nsub][1] = star[nrandom][1];
@@ -759,7 +760,7 @@ int main (int argv, char **argc) {
 			for (j=0;j<Nunseg;j++) free (m_temp[j]);
 			free(m_temp);		
 		
-			N[i] = Nunseg;
+			// N[i] = Nunseg;
 		}
 
 //		tscale = sqrt(rvir[i]*rvir[i]*rvir[i]/(G*M[i]));

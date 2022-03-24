@@ -1,0 +1,7 @@
+*.o
+BSE/*.o
+*~
+*_nbody*.dat
+dat*.10
+mcluster*
+document/
