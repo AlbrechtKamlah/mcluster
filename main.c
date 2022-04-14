@@ -56,6 +56,7 @@
 #include<string.h>
 #include<sys/stat.h>
 #include<getopt.h>
+#include<assert.h>
 #ifdef GPU
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -113,6 +114,7 @@ int main (int argv, char **argc) {
 	int tf = mclusteri_.tf;			//Tidal field: =0 no tidal field, =1 point-mass galaxy
 	double rbar = mclusterd_.rbar;		//Tidal radius for point mass tidal field 
 	double rh_mcl = mclusterd_.rh_mcl;	//Half mass radius radius for the whole system
+	double rh_1pop = 0.0; 	//Half mass radius radius for the first population in Nbody units
 
 	//Mass function parameters
 	int p;
@@ -391,7 +393,7 @@ int main (int argv, char **argc) {
 		//for now, all Z and epochs are the same, i.e. a single stellar population
 		if (mfunc[i] == 1) {
 			printf(" Maximum stellar mass set to: %.2f\n", MMAX);
-			generate_m1(&N[i], star, mlow[i], mup[i], &M[i], &mmean[i], MMAX, Mcl, epoch[i], Z[i], rh_mcl, remnant, Nsub);
+			generate_m1(&N[i], star, mlow[i], mup[i], &M[i], &mmean[i], MMAX, Mcl, epoch[i], Z[i], abs(rh_mcl), remnant, Nsub);
 		} else if (mfunc[i] == 2) {
 			if (mn[i]) {
 				for (j = mn[i]+1; j < MAX_MN; j++) mlim[i][j] = 0.0;
@@ -432,7 +434,7 @@ int main (int argv, char **argc) {
 					submass[j] = norm[j] * subint(mlim[i][j], mlim[i][j+1], alpha[i][j] + 2.);
 					M_tmp += submass[j];
 				}
-				generate_m2(an[i], mlim[i], alpha[i], Mcl, M_tmp, subcount, &N[i], &mmean[i], &M[i], star, MMAX, epoch[i], Z[i], rh_mcl, remnant, Nsub);
+				generate_m2(an[i], mlim[i], alpha[i], Mcl, M_tmp, subcount, &N[i], &mmean[i], &M[i], star, MMAX, epoch[i], Z[i], abs(rh_mcl), remnant, Nsub);
 			}
 //	 	} else if (mfunc[i] == 3) {
 //			printf(" Maximum stellar mass set to: %.2f\n",MMAX);
@@ -441,7 +443,7 @@ int main (int argv, char **argc) {
 	 	} else if (mfunc[i] == 3) {
 			printf(" Maximum stellar mass set to: %.2f\n", MMAX);
 			printf(" Using L3 IMF (Maschberger 2012)\n");
-			generate_m4(&N[i], star, alpha_L3[i], beta_L3[i], mu_L3[i], mlow[i], mup[i], &M[i], &mmean[i], MMAX, Mcl, epoch[i], Z[i], rh_mcl, remnant, Nsub);		
+			generate_m4(&N[i], star, alpha_L3[i], beta_L3[i], mu_L3[i], mlow[i], mup[i], &M[i], &mmean[i], MMAX, Mcl, epoch[i], Z[i], abs(rh_mcl), remnant, Nsub);		
 		} else  if (mfunc[i] == 0) {
 			printf(" Setting stellar masses to %.1f solar mass\n", single_mass[i]);
 //			if (!N[i]) N[i] = Mcl/single_mass[i];
@@ -506,7 +508,7 @@ int main (int argv, char **argc) {
 	printf("  Approximate tidal radius: %g (pc)\n", rtide);
 
 	//START CICLE FOR GENERATE POSITION FOR MULTIPLE POPULATIONS OR FOR SINGLE POPULATION
-	for (i=0;i<numberofpop;i++){ 
+	for (i=0;i<numberofpop;i++){
 		printf("\nGenerating positions and velocities for stellar population number %i\n",i+1);
 
 //used to change the correct star array; star_array will be constructed as: Nbinaries_1_gen, Nsingle_1_gen, Nbinaries_2_gen, Nsingle_2_gen, ..
@@ -647,16 +649,7 @@ int main (int argv, char **argc) {
 		} else if (profile[i] == 3) {
 			N[i] = Nunseg;
 			printf("\nGenerating segregated Subr model with parameters: N = %i\t S = %g\t\n",N[i], S[i]);
-			double perc = Mtotal/M[0];
-			if(tf == 1) {
-				if(rh_mcl >= 1.0E9){
-					rvir = (0.1*rtide)/0.772764;
-				} else {
-					rvir = (perc)*(rh_mcl)/0.772764;
-				}
-			} else {
-				rvir = (perc)*(rh_mcl)/0.772764;
-			}
+			rvir = determine_rvir(rh_mcl, Mtotal, M[0], tf, rtide,cc);
 			//rvir[i] = Rh[i]/0.76857063065978; //(value provided by L. Subr) 
 			generate_subr(N[i], S[i], star, rtide, rvir, Nsub);
 //			printf ("\nrvir = %.5f\t rtide = %.5f (pc)\n", rvir, rtide);
@@ -678,28 +671,10 @@ int main (int argv, char **argc) {
 			} else{
 				fractalize_spherical(-D[i], N[i], star, 0, symmetry, Nsub);
 			} 
-			double perc = Mtotal/M[0];
-			if(tf == 1) {
-				if(rh_mcl >= 1.0E9){
-					rvir = (0.1*rtide)/0.772764;
-				} else {
-					rvir = (perc)*(rh_mcl)/0.772764;
-				}
-			} else {
-				rvir = (perc)*(rh_mcl)/0.772764;
-			}
+			rvir = determine_rvir(rh_mcl, Mtotal, M[0], tf, rtide,cc);
 		} else if (profile[i] == 1) {
 			printf(" Generating Plummer model with parameters: N = %i\t D = %.2f\n", N[i], D[i]);
-			double perc = Mtotal/M[0];
-			if(tf == 1) {
-				if(rh_mcl >= 1.0E9){
-					rvir = (0.1*rtide)/0.772764;
-				} else {
-					rvir = (perc)*(rh_mcl)/0.772764;
-				}
-			} else {
-				rvir = (perc)*(rh_mcl)/0.772764;
-			}
+			rvir = determine_rvir(rh_mcl, Mtotal, M[0], tf, rtide,cc);
 			generate_plummer(N[i], star, rtide, rvir, D[i], symmetry, Qtot, Nsub, rho_dens[i], cc, M[i], Mtotal);
 		}
 
@@ -733,11 +708,11 @@ int main (int argv, char **argc) {
 			int nlow, nhigh, nrandom;
 			for (k=0;k<Nunseg;k++) {
 				nhigh = Nseg*Mcum[k];
-				// if (i) {
-					// nlow = Nseg*Mcum[k-1];
-				// } else {
-				nlow = 0;
-				// }
+				if (k) {
+					nlow = Nseg*Mcum[k-1];
+				} else {
+					nlow = 0;
+				}
 				nrandom = (nhigh-nlow)*drand48()+nlow;
 				star[k+Nsub][0] = m_temp[k][0];
 				star[k+Nsub][1] = star[nrandom][1];
@@ -760,7 +735,7 @@ int main (int argv, char **argc) {
 			for (j=0;j<Nunseg;j++) free (m_temp[j]);
 			free(m_temp);		
 		
-			// N[i] = Nunseg;
+			N[i] = Nunseg;
 		}
 
 //		tscale = sqrt(rvir[i]*rvir[i]*rvir[i]/(G*M[i]));
@@ -833,10 +808,10 @@ int main (int argv, char **argc) {
 			if(amax[i] > 0.0){
 				amax[i] *= RSUN2PC_MC;
 			} else {
-				amax[i] *= -2.5*rh_mcl/Ntot;
+				amax[i] *= -2.5*abs(rh_mcl)/Ntot;
 			}
 
-			get_binaries(nbin[i], mbin, Mtotal, pairing[i], N[i], adis[i], amin[i], amax[i], rh_mcl, Ntot, eigen[i], BSE, epoch[i], Z[i], remnant, OBperiods[i], msort[i], Nsub, Nbinsub,eccbinaries, abinaries);
+			get_binaries(nbin[i], mbin, Mtotal, pairing[i], N[i], adis[i], amin[i], amax[i], abs(rh_mcl), Ntot, eigen[i], BSE, epoch[i], Z[i], remnant, OBperiods[i], msort[i], Nsub, Nbinsub,eccbinaries, abinaries);
 			
 			if (eigen[i] || (BSE && epoch[i])) {
 				N[i] += nbin[i];
@@ -1237,6 +1212,8 @@ int main (int argv, char **argc) {
 	}
 	printf("\nAfter re-scaling orbits, rescaling factors sx %f, sv %f\n",sx,sv);
 
+
+	printf("Determine half-mass radius for the whole cluster\n");
 	j_star = 0;
 	for (j=0;j<Ntot;j++) {
 		if(star[j][0] != 0.0){
@@ -1269,30 +1246,97 @@ int main (int argv, char **argc) {
 			break;
 		}
 	}
-	free(cummass);
 
 	double last_star;
 	last_star = star_temp[j_star-1][7];
 
-	if(tf == 1){
-		if(rh_mcl > 1.0E9){
-			printf(" Tidally filling model\n");
-			rvir = rtide/last_star;
-			printf(" rvir =  %f Rhtot = %f rtide = %f (pc)\n",rvir,Rhtot*rvir,last_star*rvir);
-		} else {
-			printf(" Tidally underfilling model\n");
-			rvir = rh_mcl/Rhtot;
-			printf(" rvir = %f Rhtot = %f Rlast  = %f rtide = %f (pc)\n",rvir,Rhtot*rvir,last_star*rvir,rtide);
-		}
-	} else {
-		rvir = rh_mcl/Rhtot;
-		printf(" rvir = %f Rhtot = %f Rlast  = %f rtide = %f (pc)\n",rvir,Rhtot*rvir,last_star*rvir,rtide);
-	}
-
+	free(cummass);
 	for (j=0;j<Ntot;j++) {
 		free (star_temp[j]);
 	}
 	free(star_temp);
+
+	if (rh_mcl < 0.0){ // determine half mass radius of first generation in Nbody units
+		printf("Determine half-mass radius for the first generation\n");
+		double **star_temp_1pop;
+		star_temp_1pop = (double **)calloc(N[0], sizeof(double *));
+		for (j=0;j<N[0];j++){
+			star_temp_1pop[j] = (double *)calloc(11, sizeof(double));
+			if (star_temp_1pop[j] == NULL) {
+				printf("\nMemory allocation failed!\n");
+				return 0;
+			}
+		}
+		j_star = 0;
+		for (j=0;j<N[0];j++) {
+			if(star[j][0] != 0.0){
+				star_temp_1pop[j_star][0] = star[j][0];
+				star_temp_1pop[j_star][1] = star[j][1];
+				star_temp_1pop[j_star][2] = star[j][2];
+				star_temp_1pop[j_star][3] = star[j][3];
+				star_temp_1pop[j_star][4] = 0.0;
+				star_temp_1pop[j_star][5] = 0.0;
+				star_temp_1pop[j_star][6] = 0.0;
+				star_temp_1pop[j_star][7] = 0.0; //radius
+				star_temp_1pop[j_star][8] = 0.0; //u(i)
+				star_temp_1pop[j_star][9] = 0.0; //cumulative mass
+				star_temp_1pop[j_star][10] = j; //star index
+				j_star = j_star + 1;
+			}
+		}
+		radial_distance_order(star_temp_1pop,j_star);
+
+		double cummass=0.0;
+		for (j=0;j<j_star;j++) {
+			cummass += star_temp_1pop[j][0];
+			if (cummass >= 0.5 * M[0]){
+				rh_1pop = star_temp_1pop[j][7];
+				break;
+			}
+		}
+
+		last_star = star_temp_1pop[j_star-1][7];
+		for (j=0;j<N[0];j++) {
+			free (star_temp_1pop[j]);
+		}
+		free(star_temp_1pop);
+	}
+
+
+
+	if (rh_mcl > 0.0){ // determine scaling factor from the whole cluster half mass radius
+		if(tf == 1){
+			if(rh_mcl > 1.0E9){
+				printf(" Tidally filling model\n");
+				rvir = rtide/last_star;
+				printf(" rvir =  %f Rhtot = %f rtide = %f (pc)\n",rvir,Rhtot*rvir,last_star*rvir);
+			} else {
+				printf(" Tidally underfilling model\n");
+				rvir = rh_mcl/Rhtot;
+				printf(" rvir = %f Rhtot = %f Rlast  = %f rtide = %f (pc)\n",rvir,Rhtot*rvir,last_star*rvir,rtide);
+			}
+		} else {
+			rvir = rh_mcl/Rhtot;
+			printf(" rvir = %f Rhtot = %f Rlast  = %f rtide = %f (pc)\n",rvir,Rhtot*rvir,last_star*rvir,rtide);
+		}
+	} else {// determine scaling factor from the 1st generation half mass radius
+		if(tf == 1){
+			if(abs(rh_mcl) > 1.0E9){
+				printf(" Tidally filling model\n");
+				rvir = rtide/last_star;
+				printf(" rvir =  %f Rh_1pop = %f rtide = %f (pc)\n",rvir,rh_1pop*rvir,last_star*rvir);
+			} else {
+				printf(" Tidally underfilling model\n");
+				rvir = abs(rh_mcl)/rh_1pop;
+				printf(" rvir = %f Rh_1pop = %f Rlast  = %f rtide = %f (pc)\n",rvir,rh_1pop*rvir,last_star*rvir,rtide);
+			}
+		} else {
+			rvir = abs(rh_mcl)/rh_1pop;
+			printf(" rvir = %f Rh_1pop = %f Rlast  = %f rtide = %f (pc)\n",rvir,rh_1pop*rvir,last_star*rvir,rtide);
+		}
+
+	}
+
 
 		//Specify KZ(22) & the sse parameter
 //#ifdef SSE
@@ -5167,6 +5211,12 @@ int segregate(double **star, int N, double S, int N2){
 			return 0;
 		}
 	}
+
+    int ncount_bin=((int)sqrt(N))/10*10;
+    if (N<100) ncount_bin=10;
+    if (N<10) ncount_bin=1;
+    int ncount_binsize=N/ncount_bin+1;
+    int n_count[ncount_bin];
 	
 	for (i=0;i<N;i++) {
 		masses[i][0] = star[i+N2][0];
@@ -5176,36 +5226,71 @@ int segregate(double **star, int N, double S, int N2){
 	shellsort(masses, N, 2);	
 
 	for (i=0;i<N;i++) star_temp[i][0] = 0.0;
+    for (i=0;i<ncount_bin;i++) n_count[i] = 0;
 	
 	j = 0;
-	int Ntemp,l;
+	int Ntemp,l,lbin;
 	Ntemp = N;
-	for (i=0;i<N;i++) {
-		j = 1.0*(1.0-pow(drand48(),1.0-S))*Ntemp;
-		l=-1;
-		do {
-			l++;
-			if (star_temp[l][0]) {
-				j++;
-			}
-		} while (l<j);
-		star_temp[j][0] = star[(int) masses[i][1]][0];
-		star_temp[j][1] = star[(int) masses[i][1]][1];
-		star_temp[j][2] = star[(int) masses[i][1]][2];
-		star_temp[j][3] = star[(int) masses[i][1]][3];
-		star_temp[j][4] = star[(int) masses[i][1]][4];
-		star_temp[j][5] = star[(int) masses[i][1]][5];
-		star_temp[j][6] = star[(int) masses[i][1]][6];
-		star_temp[j][7] = star[(int) masses[i][1]][7];
-		star_temp[j][8] = star[(int) masses[i][1]][8];
-		star_temp[j][9] = star[(int) masses[i][1]][9];
-		star_temp[j][10] = star[(int) masses[i][1]][10];
-		star_temp[j][11] = star[(int) masses[i][1]][11];
-		star_temp[j][12] = star[(int) masses[i][1]][12];
-		star_temp[j][13] = star[(int) masses[i][1]][13];
-		star_temp[j][14] = star[(int) masses[i][1]][14];
-		Ntemp--;
-	}	
+    // Fully mass segregated case, no need to random pick up
+    if(S==1.0) {
+        printf("Sorted mass\n");
+        for (i=0;i<N;i++) {
+            star_temp[i][0] = star[(int) masses[i][1]][0];
+            star_temp[i][1] = star[(int) masses[i][1]][1];
+            star_temp[i][2] = star[(int) masses[i][1]][2];
+            star_temp[i][3] = star[(int) masses[i][1]][3];
+            star_temp[i][4] = star[(int) masses[i][1]][4];
+            star_temp[i][5] = star[(int) masses[i][1]][5];
+            star_temp[i][6] = star[(int) masses[i][1]][6];
+            star_temp[i][7] = star[(int) masses[i][1]][7];
+            star_temp[i][8] = star[(int) masses[i][1]][8];
+            star_temp[i][9] = star[(int) masses[i][1]][9];
+            star_temp[i][10] = star[(int) masses[i][1]][10];
+            star_temp[i][11] = star[(int) masses[i][1]][11];
+            star_temp[i][12] = star[(int) masses[i][1]][12];
+            star_temp[i][13] = star[(int) masses[i][1]][13];
+            star_temp[i][14] = star[(int) masses[i][1]][14];
+        }
+    }
+    else{
+        for (i=0;i<N;i++) {
+            j = 1.0*(1.0-pow(drand48(),1.0-S))*Ntemp;
+            // to reduce computing time, gether occupied index number into bins, then check each bin before index j
+            lbin=-1;
+            do {
+                lbin++;
+                l = lbin*ncount_binsize;
+                if (j<(lbin+1)*ncount_binsize) break;
+                if (n_count[lbin]) j+=n_count[lbin];
+            } while (1);
+            // finally check the index in the last bin
+            l--;
+            do {
+                l++;
+                if (star_temp[l][0]) {
+                    j++;
+                }
+            } while (l<j);
+            n_count[j/ncount_binsize]++;
+            star_temp[j][0] = star[(int) masses[i][1]][0];
+            star_temp[j][1] = star[(int) masses[i][1]][1];
+            star_temp[j][2] = star[(int) masses[i][1]][2];
+            star_temp[j][3] = star[(int) masses[i][1]][3];
+            star_temp[j][4] = star[(int) masses[i][1]][4];
+            star_temp[j][5] = star[(int) masses[i][1]][5];
+            star_temp[j][6] = star[(int) masses[i][1]][6];
+            star_temp[j][7] = star[(int) masses[i][1]][7];
+            star_temp[j][8] = star[(int) masses[i][1]][8];
+            star_temp[j][9] = star[(int) masses[i][1]][9];
+            star_temp[j][10] = star[(int) masses[i][1]][10];
+            star_temp[j][11] = star[(int) masses[i][1]][11];
+            star_temp[j][12] = star[(int) masses[i][1]][12];
+            star_temp[j][13] = star[(int) masses[i][1]][13];
+            star_temp[j][14] = star[(int) masses[i][1]][14];
+            Ntemp--;
+        }
+        for (i=0; i<N;i++) assert(star_temp[i][0]>0.0);
+    }	
 	
 	//copying back to original array
 	for (i=0;i<N;i++) {
@@ -5849,4 +5934,31 @@ double interpolation(double **x, int n, double a){
 
 
 	return k;
+}
+
+double determine_rvir(double rh_mcl, double Mtotal, double M0, int tf, double rtide, double concentration){
+	double rvir = 0.0;
+	if(rh_mcl > 0.0){ // scaling factor is defined by the whole cluster half-mass radius
+		double perc = Mtotal/M0;
+		if(tf == 1) {
+			if(rh_mcl >= 1.0E9){
+				rvir = (0.1*rtide)/0.772764;
+			} else {
+				rvir = (perc)*(rh_mcl)/0.772764;
+			}
+		} else {
+			rvir = (perc)*(rh_mcl)/0.772764;
+		}
+	} else { // scaling factor is defined by the first generation half-mass radius
+		if(tf == 1) {
+			if(abs(rh_mcl) >= 1.0E9){
+				rvir = (0.1*rtide)/0.772764;
+			} else {
+				rvir = concentration*abs(rh_mcl)/0.772764;
+			}
+		} else {
+			rvir = concentration*abs(rh_mcl)/0.772764;
+		}
+	}
+	return rvir;
 }

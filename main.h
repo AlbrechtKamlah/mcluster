@@ -246,3 +246,4 @@ void info(char *output, int N, double Mcl, int profile, double W0, double S, dou
 double interpl_density(int N, int Ni, int i, int j_star, double **inputJE_vect, double **star_temp, double ***rho_dens);
 double interpolation(double **x, int n, double a);
 int decomposition_orbit(int nbin, double **star, double M, double rvir, double Rh,int *N, int BSE, double epoch, double Z, int remnant, int N2, int N3, double *eccbinaries, double *abinaries, double **cmb);
+double determine_rvir(double rh_mcl, double Mtotal, double M0, int tf, double rtide, double concentration);

@@ -196,6 +196,12 @@
 
       key = "Mcluster:rh_mcl"
       call config_getdouble(rh_mcl, 1.0d0, key, conf);
+       if (numpop.eq.1.AND.rh_mcl.lt.0.0d0) then
+      print*,"ERROR Mcluster:rh_mcl",
+     &   " is wrong. It should be greater",
+     &   " then 0.0 for only one population"
+         stop
+      endif
 
       key = "Mcluster:conc_pop"
       call config_getstr(conc_popchar, "0.5", key, conf);
