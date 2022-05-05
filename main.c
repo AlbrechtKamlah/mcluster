@@ -328,7 +328,7 @@ int main (int argv, char **argc) {
 	 * Generate masses *
 	 *******************/
 	
-	printf("\n\n-----GENERATE MASSES-----     \n"); 
+	printf("\n\n-----GENERATE MASSES-----     \n");
 
 //START CICLE FOR GENERATE MASS FOR MULTIPLE POPULATIONS OR FOR SINGLE POPULATION
 	for (i=0;i<numberofpop;i++){
@@ -482,6 +482,14 @@ int main (int argv, char **argc) {
 
 	for(j=0;j<numberofpop;j++) printf("\n Mass %i generation: \t%.3f\n", j+1, M[j]);
 	printf("\n Total mass %.3f\n",Mtotal);
+
+	if(rbar < 0.0){
+		double galactocentric_distance = abs(rbar);
+		printf("\n Tidal radius determined from the galactocentric distance\n");
+		printf("  Input galactocentric distance: %.2f kpc\n",galactocentric_distance);
+		rbar = 0.31 * pow(galactocentric_distance,2.0/3.0) * pow(Mtotal,1.0/3.0);
+		printf("  Initial tidal radius: %.2f pc\n",rbar);
+	}
 
 
 	/*************************************
@@ -4693,9 +4701,9 @@ int decomposition_orbit(int nbin, double **star, double M, double rvir, double R
 
 	for (i=0; i < nbin; i++) {
 			ecc = eccbinaries[i+N3];
-			abin = abinaries[i+N3]/rvir;
+			abin = abinaries[i+N3]/rvir; //abinaries is in pc; abin is in Nbody units
 			//Specify component masses
-			m1 = star[2*i+N2][0]/M;
+			m1 = star[2*i+N2][0]/M; //m1 is in Nbody, star[][mass] is in Msun
 			m2 = star[2*i+1+N2][0]/M;
 			if(eccbinaries[i+N3]==2.0) ecc=1.0;
 
@@ -4740,8 +4748,8 @@ int decomposition_orbit(int nbin, double **star, double M, double rvir, double R
 			}
 
 			for (j=0;j<3;j++) {
-				star[2*i+1+N2][j+1] = star[2*i+N2][j+1] + m1/(m1+m2)*rrel[j];		 //Star2 pos
-				star[2*i+1+N2][j+4] = star[2*i+N2][j+4] + m1/(m1+m2)*vrel[j];      //Star2 vel
+				star[2*i+1+N2][j+1] += m1/(m1+m2)*rrel[j];		 //Star2 pos
+				star[2*i+1+N2][j+4] += m1/(m1+m2)*vrel[j];      //Star2 vel
 				star[2*i+N2][j+1]  -= m2/(m1+m2)*rrel[j];                       //Star1 pos
 				star[2*i+N2][j+4]  -= m2/(m1+m2)*vrel[j];                       //Star1 vel
 			}
