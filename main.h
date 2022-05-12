@@ -230,7 +230,7 @@ void shellsort(double **array, int N, int k);
 void shellsort_reverse(double **array, int N, int k);
 int order(double **star, int N, double M, double msort, int pairing, int N2, double fracb);
 int segregate(double **star, int N, double S, int N2);
-int energy_order(double **star, int N, int Nstars, int N2);
+int energy_order(double **star, int N, int Nstars, int N2, double **rho_dens_single_pop);
 int radial_distance_order(double **star, int N);
 double coepot(double **star, int N);
 int randomize(double **star, int N, int N2);

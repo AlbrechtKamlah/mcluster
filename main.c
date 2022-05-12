@@ -623,13 +623,12 @@ int main (int argv, char **argc) {
 		double mmeancom = 0.0;
 		for (j=0;j<N[i];j++) {
 			star[j+Nsub][0] /= M[i]; //scale masses to Nbody units
-			mmeancom += star[i][0];
+			mmeancom += star[j+Nsub][0];
 			if (star[j+Nsub][0] < mlowest) mlowest = star[j+Nsub][0];
 			if (star[j+Nsub][0] > mhighest) mhighest = star[j+Nsub][0];
 		}
 		mmeancom /= N[i];
-		// int Nseg = ceil(N[i]*mmeancom/mlowest);  //number of necessary pos & vel pairs for Baumgardt et al. (2008) mass segregation routine
-		int Nseg = N[i];
+		int Nseg = ceil(N[i]*mmeancom/mlowest);  //number of necessary pos & vel pairs for Baumgardt et al. (2008) mass segregation routine
 		int Nunseg = N[i];
 
 		double *Mcum;
@@ -642,7 +641,17 @@ int main (int argv, char **argc) {
 			for (j=1;j<N[i];j++) {//calculate cumulative mass function Mcum
 				Mcum[j] = Mcum[j-1] + star[j+Nsub][0];
 			}
-			// N[i] = Nseg;
+			N[i] = Nseg;
+		}
+
+		double **rho_dens_single_pop;
+		rho_dens_single_pop = (double **)calloc(N[i], sizeof(double *));
+		for (j=0;j<N[i];j++){
+			rho_dens_single_pop[j] = (double *)calloc(2, sizeof(double));
+			if (rho_dens_single_pop[j] == NULL) {
+				printf("\nMemory allocation failed!\n");
+				return 0;
+			}
 		}
 
 		double cc;
@@ -653,7 +662,7 @@ int main (int argv, char **argc) {
 		double rhking[10], rvirking[10], rking[10];
 		if (profile[i] == 2) {
 			printf("\nGenerating King model with parameters: N = %i\t W0 = %g\t D = %.2f\n",N[i], W0[i], D[i]);
-			generate_king(N[i], W0[i], star, &rvirking[i], &rhking[i], &rking[i], D[i], symmetry, Nsub, rho_dens[i], cc, M[i], Mtotal);
+			generate_king(N[i], W0[i], star, &rvirking[i], &rhking[i], &rking[i], D[i], symmetry, Nsub, rho_dens_single_pop, cc, M[i], Mtotal);
 		} else if (profile[i] == 3) {
 			N[i] = Nunseg;
 			printf("\nGenerating segregated Subr model with parameters: N = %i\t S = %g\t\n",N[i], S[i]);
@@ -685,12 +694,11 @@ int main (int argv, char **argc) {
 			rvir = determine_rvir(rh_mcl, Mtotal, M[0], tf, rtide,cc);
 			generate_plummer(N[i], star, rtide, rvir, D[i], symmetry, Qtot, Nsub, rho_dens[i], cc, M[i], Mtotal);
 		}
-
 		//Apply Baumgardt et al. (2008) mass segregation
 		if (!(profile[i] == 3) && (S[i])) {
 			double **m_temp;
-			m_temp = (double **)calloc(Nunseg, sizeof(double *));
-			for (j=0;j<Nunseg;j++){
+			m_temp = (double **)calloc(Nseg, sizeof(double *));
+			for (j=0;j<Nseg;j++){
 				m_temp[j] = (double *)calloc(9, sizeof(double));
 				if (m_temp[j] == NULL) {
 					printf("\nMemory allocation failed!\n");
@@ -698,7 +706,7 @@ int main (int argv, char **argc) {
 				}
 			}	
 				
-			for (k=0;k<Nunseg;k++) {//temporarily store the masses & stellar evol parameters
+			for (k=0;k<Nseg;k++) {//temporarily store the masses & stellar evol parameters
 				m_temp[k][0] = star[k+Nsub][0];
 				m_temp[k][1] = star[k+Nsub][7];
 				m_temp[k][2] = star[k+Nsub][8];
@@ -711,7 +719,7 @@ int main (int argv, char **argc) {
 			}
 		
 			printf("\nOrdering orbits by energy.\n");
-			energy_order(star, N[i], Nstars, Nsub);
+			energy_order(star, N[i], Nstars, Nsub, rho_dens_single_pop);
 
 			int nlow, nhigh, nrandom;
 			for (k=0;k<Nunseg;k++) {
@@ -737,15 +745,40 @@ int main (int argv, char **argc) {
 				star[k+Nsub][12] = m_temp[k][6];
 				star[k+Nsub][13] = m_temp[k][7];
 				star[k+Nsub][14] = m_temp[k][8];
+				rho_dens[i][k][0] = rho_dens_single_pop[nrandom][0];
+				rho_dens[i][k][1] = rho_dens_single_pop[nrandom][1];
 			}
 
-		
+			// reorder the masses 
+			for (k=Nunseg;k<Nseg;k++) {
+				star[k+Nsub][0] = m_temp[k][0];
+				star[k+Nsub][7] = m_temp[k][1];
+				star[k+Nsub][8] = m_temp[k][2];
+				star[k+Nsub][9] = m_temp[k][3];
+				star[k+Nsub][10] = m_temp[k][4];
+				star[k+Nsub][11] = m_temp[k][5];
+				star[k+Nsub][12] = m_temp[k][6];
+				star[k+Nsub][13] = m_temp[k][7];
+				star[k+Nsub][14] = m_temp[k][8];
+				// remove position and velocities for orbits in other stellar population - mass segregation prosiger creates number of orbits > number of population, thus the positions and velocities for "outer" population could be 
+				// not null
+				for (j=1;j<7;j++) star[k+Nsub][j] = 0.0;
+			}
 			for (j=0;j<Nunseg;j++) free (m_temp[j]);
 			free(m_temp);		
 		
+			for (j=0;j<N[i];j++) free (rho_dens_single_pop[j]);
+			free(rho_dens_single_pop);
 			N[i] = Nunseg;
+		} else {
+			printf("No mass segregation\n");
+			for (j=0;j<N[i];j++) {
+				rho_dens[i][j][0] = rho_dens_single_pop[j][0];
+				rho_dens[i][j][1] = rho_dens_single_pop[j][1];
+			}
+			for (j=0;j<N[i];j++) free (rho_dens_single_pop[j]);
+			free(rho_dens_single_pop);
 		}
-
 //		tscale = sqrt(rvir[i]*rvir[i]*rvir[i]/(G*M[i]));
 //		vscale[i] = rvir[i]/tscale;
 //		for (j=0; j<N[i]; j++) { //distance scaled to the relative ratio with the first generation scaling factor
@@ -2811,7 +2844,6 @@ int generate_king(int N, double W0, double **star, double *rvir, double *rh, dou
 			xstar = r*sinth*cos(phi);
 			ystar = r*sinth*sin(phi);
 			zstar = r*costh;
-
 			
 			/****************
 			 * CHOOSE SPEED *
@@ -2835,7 +2867,7 @@ int generate_king(int N, double W0, double **star, double *rvir, double *rh, dou
                			w =-1;
 		                return 0;
 			}
-			
+
 			rho_dens[i][1] = densty(w)/den;
 			rho_dens[i][0] = r;
 
@@ -5328,9 +5360,8 @@ int segregate(double **star, int N, double S, int N2){
 	return 0;
 }
 
-int energy_order(double **star, int N, int Nstars, int N2){
+int energy_order(double **star, int N, int Nstars, int N2, double **rho_dens_single_pop){
 	int i,j;
-	
 	int columns = 15;
 	double **star_temp;
 	star_temp = (double **)calloc(N, sizeof(double *));
@@ -5338,6 +5369,16 @@ int energy_order(double **star, int N, int Nstars, int N2){
 		star_temp[j] = (double *)calloc(columns, sizeof(double));
 		star_temp[j][0] = 0.0;
 		if (star_temp[j] == NULL) {
+			printf("\nMemory allocation failed!\n");
+			return 0;
+		}
+	}
+	double **rho_dens_single_pop_temp;
+	rho_dens_single_pop_temp = (double **)calloc(N, sizeof(double *));
+	for (j=0;j<N;j++){
+		rho_dens_single_pop_temp[j] = (double *)calloc(2, sizeof(double));
+		rho_dens_single_pop_temp[j][0] = 0.0;
+		if (rho_dens_single_pop_temp[j] == NULL) {
 			printf("\nMemory allocation failed!\n");
 			return 0;
 		}
@@ -5374,6 +5415,8 @@ int energy_order(double **star, int N, int Nstars, int N2){
 		star_temp[i][10] = star[(int) energies[i][1]][10];
 		star_temp[i][11] = star[(int) energies[i][1]][11];
 		star_temp[i][12] = star[(int) energies[i][1]][12];
+		rho_dens_single_pop_temp[i][0] = rho_dens_single_pop[(int) energies[i][1]-N2][0];
+		rho_dens_single_pop_temp[i][1] = rho_dens_single_pop[(int) energies[i][1]-N2][1];
 	}
 	
 	
@@ -5394,6 +5437,8 @@ int energy_order(double **star, int N, int Nstars, int N2){
 		star[i+N2][12] = star_temp[i][12];
 		star[i+N2][13] = star_temp[i][13];
 		star[i+N2][14] = star_temp[i][14];
+		rho_dens_single_pop[i][0] = rho_dens_single_pop_temp[i][0];
+		rho_dens_single_pop[i][1] = rho_dens_single_pop_temp[i][1];
 	}
 	
 	for (j=0;j<N;j++) free (energies[j]);
@@ -5401,6 +5446,9 @@ int energy_order(double **star, int N, int Nstars, int N2){
 
 	for (j=0;j<N;j++) free (star_temp[j]);
 	free(star_temp);
+
+	for (j=0;j<N;j++) free (rho_dens_single_pop_temp[j]);
+	free(rho_dens_single_pop_temp);
 	
 	return 0;
 }
