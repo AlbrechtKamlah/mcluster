@@ -921,8 +921,20 @@ int main (int argv, char **argc) {
 
 	double massafter=0.0;
 	for (j=0;j<Ntot;j++) massafter += star[j][0];
-//	Change mass after eigenevolution and/or stellar evolution
+	if(Mtotal != massafter){
+		printf("Mass changed due to eigenevolution and/or stellar evolution from M = %.2f to M = %.2f\n",Mtotal,massafter);
+	}
+	//	Change mass after eigenevolution and/or stellar evolution
 	Mtotal = massafter;
+
+	if (rh_mcl < 0.0){
+		double massafter_first_population=0.0;
+		for (j=0;j<N[0];j++) massafter_first_population += star[j][0];
+		if(M[0] != massafter_first_population){
+			printf("Mass changed due to eigenevolution and/or stellar evolution from M = %.2f to M = %.2f\n",M[0],massafter_first_population);
+		}
+		M[0] = massafter_first_population;
+	}
 
 //copy star_array to re-order it according to radial distance
 // star_temp array will be used for jeans equation solution and for spherical simmetry scaling in N-body units
@@ -1311,7 +1323,7 @@ int main (int argv, char **argc) {
 		j_star = 0;
 		for (j=0;j<N[0];j++) {
 			if(star[j][0] != 0.0){
-				star_temp_1pop[j_star][0] = star[j][0];
+				star_temp_1pop[j_star][0] = star[j][0]/M[0];
 				star_temp_1pop[j_star][1] = star[j][1];
 				star_temp_1pop[j_star][2] = star[j][2];
 				star_temp_1pop[j_star][3] = star[j][3];
@@ -1330,7 +1342,7 @@ int main (int argv, char **argc) {
 		double cummass=0.0;
 		for (j=0;j<j_star;j++) {
 			cummass += star_temp_1pop[j][0];
-			if (cummass >= 0.5 * M[0]){
+			if (cummass >= 0.5){
 				rh_1pop = star_temp_1pop[j][7];
 				break;
 			}
