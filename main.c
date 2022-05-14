@@ -883,8 +883,8 @@ int main (int argv, char **argc) {
 				}
 
 				for (j=0;j<N[i];j++) {
-					star_index[j][0] = star[j+Nsub][7];
-					star_index[j][1] = j+Nsub;
+					star_index[j][0] = star[j+Nsub+Nbinsub][7];
+					star_index[j][1] = j+Nsub+Nbinsub;
 				}
 				shellsort(star_index,N[i],2);
 
@@ -931,7 +931,7 @@ int main (int argv, char **argc) {
 		double massafter_first_population=0.0;
 		for (j=0;j<N[0];j++) massafter_first_population += star[j][0];
 		if(M[0] != massafter_first_population){
-			printf("Mass changed due to eigenevolution and/or stellar evolution from M = %.2f to M = %.2f\n",M[0],massafter_first_population);
+			printf("First population mass changed due to eigenevolution and/or stellar evolution from M = %.2f to M = %.2f\n",M[0],massafter_first_population);
 		}
 		M[0] = massafter_first_population;
 	}
@@ -1286,24 +1286,17 @@ int main (int argv, char **argc) {
 	}
 	radial_distance_order(star_temp,j_star);
 
-	double *cummass,mommass=0.0,Rhtot;
-	cummass = (double *)calloc(Ntot, sizeof(double));
-
+	double cummass=0.0,Rhtot;
 	for (j=0;j<j_star;j++) {
-		mommass += star_temp[j][0];
-		cummass[j] = mommass; //cumulative mass	
-	}
-	for (j=0;j<j_star;j++) {
-		if (cummass[j] >= 0.5){
+		cummass += star_temp[j][0];
+		if (cummass >= 0.5){
 			Rhtot = star_temp[j][7];
 			break;
 		}
 	}
-
 	double last_star;
 	last_star = star_temp[j_star-1][7];
 
-	free(cummass);
 	for (j=0;j<Ntot;j++) {
 		free (star_temp[j]);
 	}
@@ -1354,8 +1347,6 @@ int main (int argv, char **argc) {
 		}
 		free(star_temp_1pop);
 	}
-
-
 
 	if (rh_mcl > 0.0){ // determine scaling factor from the whole cluster half mass radius
 		if(tf == 1){
