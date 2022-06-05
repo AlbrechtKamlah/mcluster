@@ -68,7 +68,7 @@ void config_validate_(const char conf[10000]) {
 	int i, k, m, secCount, keysCount, found;
 	char* secName;
 	char** keys;
-	const int expectedCount = 32;
+	const int expectedCount = 33;
 	char* expected[expectedCount];
 
 	if (dict == NULL)
@@ -76,36 +76,37 @@ void config_validate_(const char conf[10000]) {
 
 	expected[0] = "mcluster:n";
 	expected[1] = "mcluster:fracb";
-	expected[2] = "mcluster:initialmodel";
-	expected[3] = "mcluster:w0";
-	expected[4] = "mcluster:S";
-	expected[5] = "mcluster:fractal";
-	expected[6] = "mcluster:qvir";
-	expected[7] = "mcluster:mfunc";
-	expected[8] = "mcluster:single_mass";
-	expected[9] = "mcluster:mlow";
-	expected[10] = "mcluster:mup";
-	expected[11] = "mcluster:alpha_imf";
-	expected[12] = "mcluster:mlim_imf";
-	expected[13] = "mcluster:alpha_l3";
-	expected[14] = "mcluster:beta_l3";
-	expected[15] = "mcluster:mu_l3";
-	expected[16] = "mcluster:pairing";
-	expected[17] = "mcluster:adis";
-	expected[18] = "mcluster:eigen";
-	expected[19] = "mcluster:amin";
-	expected[20] = "mcluster:amax";
-	expected[21] = "mcluster:tf";
-	expected[22] = "mcluster:rbar";
-	expected[23] = "mcluster:rh_mcl";
-	expected[24] = "mcluster:conc_pop";
-	expected[25] = "mcluster:potential_energy";
-	expected[26] = "mcluster:epoch";
-	expected[27] = "mcluster:zini";
-	expected[28] = "mcluster:seedmc";
-	expected[29] = "mcluster:outputf";
-	expected[30] = "mcluster:check_en";
-	expected[31] = "mcluster:BSE";
+	expected[2] = "mcluster:fracb_reference";
+	expected[3] = "mcluster:initialmodel";
+	expected[4] = "mcluster:w0";
+	expected[5] = "mcluster:S";
+	expected[6] = "mcluster:fractal";
+	expected[7] = "mcluster:qvir";
+	expected[8] = "mcluster:mfunc";
+	expected[9] = "mcluster:single_mass";
+	expected[10] = "mcluster:mlow";
+	expected[11] = "mcluster:mup";
+	expected[12] = "mcluster:alpha_imf";
+	expected[13] = "mcluster:mlim_imf";
+	expected[14] = "mcluster:alpha_l3";
+	expected[15] = "mcluster:beta_l3";
+	expected[16] = "mcluster:mu_l3";
+	expected[17] = "mcluster:pairing";
+	expected[18] = "mcluster:adis";
+	expected[19] = "mcluster:eigen";
+	expected[20] = "mcluster:amin";
+	expected[21] = "mcluster:amax";
+	expected[22] = "mcluster:tf";
+	expected[23] = "mcluster:rbar";
+	expected[24] = "mcluster:rh_mcl";
+	expected[25] = "mcluster:conc_pop";
+	expected[26] = "mcluster:potential_energy";
+	expected[27] = "mcluster:epoch";
+	expected[28] = "mcluster:zini";
+	expected[29] = "mcluster:seedmc";
+	expected[30] = "mcluster:outputf";
+	expected[31] = "mcluster:check_en";
+	expected[32] = "mcluster:BSE";
 
 	secCount = iniparser_getnsec(dict);
 	for (i = 0; i < secCount; ++i) {

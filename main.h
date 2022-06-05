@@ -158,7 +158,8 @@ extern struct
           fractal[10], equalmass[10], mlow[10],\
           mup[10], alpha_L3[10], beta_L3[10],\
           mu_L3[10], amin[10],\
-          amax[10], epoch_pop[10], zini_pop[10];
+          amax[10], epoch_pop[10], zini_pop[10],\
+          fracb_reference[10];
 } mclusterarrd_; 
 
 extern struct
@@ -221,8 +222,6 @@ double get_gauss(void);
 double fractalize(double D, int N, double **star, int radial, int symmetry, int N2);
 double fractalize_spherical(double D, int N, double **star, int radial, int symmetry, int N2);
 int standalone_rzamsf(double m, double *radius);
-//int get_binaries(int nbin, double **star, double M, double rvir, int pairing, int *N, int adis, double amin, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries, double **cmb);
-//int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis, double amin, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries, FILE *TABLEkick);
 int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis, double amin_input, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries);
 void shellsort_reverse_1d(double *array, int N);
 void shellsort_1d(double *array, int N);	
@@ -247,3 +246,7 @@ double interpl_density(int N, int Ni, int i, int j_star, double **inputJE_vect, 
 double interpolation(double **x, int n, double a);
 int decomposition_orbit(int nbin, double **star, double M, double rvir, double Rh,int *N, int BSE, double epoch, double Z, int remnant, int N2, int N3, double *eccbinaries, double *abinaries, double **cmb);
 double determine_rvir(double rh_mcl, double Mtotal, double M0, int tf, double rtide, double concentration);
+bool areArrayEqual(double arr1[], double arr2[]);
+void determine_new_number_of_stars_from_reference_model(int *N,double *fbin,double *fbin_reference,int *mfunc, double *mlow,double *mup,int numberofpop);
+double determine_average_mass_from_analytical_IMF(double mlow,double mup);
+void determine_new_number_of_stars(int *N, int *N_reference, double Mtotal_reference,double *fbin,double *fbin_reference, double *average_mass);

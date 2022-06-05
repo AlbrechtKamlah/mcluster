@@ -76,6 +76,18 @@
       endif
       end do
 
+      key = "Mcluster:fracb_reference"
+      call config_getstr(fracbreferencechar, "0.95, 0.95", key, conf);
+      call char_to_arraydouble(fracbreferencechar, fracb_reference);
+      do i = 1, numpop
+      if (fracb_reference(i).lt.0.0d0.OR.
+     &  fracb_reference(i).gt.1.0d0) then
+      write(*,*)"ERROR Mcluster:fracb_reference ",i,"-th is wrong ",
+     &        "file. It should be in the range [0,1]"
+        stop
+      endif
+      end do
+
       key = "Mcluster:initialModel"
       call config_getstr(initmodelchar, "1", key, conf);
       call char_to_arrayint(initmodelchar, initmodel);

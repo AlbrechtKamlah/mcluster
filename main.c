@@ -37,7 +37,7 @@
  ***************************************************************************/
 
 /***************************************************************************
- * Implemented 20th June 2018 by A. Leveque (agostino@camk.edu.pl)                                *
+ * Implemented 20th June 2018 by A. Leveque (agostino@camk.edu.pl)         *
  * to include scaling in N-body units assuming spherical symmetry, new     *
  * eigenevolutoin for initial binary proprieties (D. Belloni et al., 2017, *
  * MNRAS, 471, 2812) and multiple stellar population                       *
@@ -57,6 +57,7 @@
 #include<sys/stat.h>
 #include<getopt.h>
 #include<assert.h>
+#include <stdbool.h>
 #ifdef GPU
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -81,6 +82,7 @@ int main (int argv, char **argc) {
 	int i;
    	int N[10], profile[10], mfunc[10], pairing[10], adis[10], OBperiods[10], eigen[10];
 	double fbin[10], conc_pop[10], W0[10], S[10], D[10], a[10], Rmax[10], single_mass[10], mlow[10], mup[10], alpha_L3[10], beta_L3[10], mu_L3[10], msort[10], amin[10], amax[10], epoch[10], Z[10];
+	double fbin_reference[10];
 	for (i=0;i<10;i++) {
 		N[i] = mclusterarri_.npop[i];
 		profile[i] = mclusterarri_.initmodel[i];
@@ -90,6 +92,7 @@ int main (int argv, char **argc) {
 		OBperiods[i] = 0;
 		eigen[i] = mclusterarri_.eigen[i];
 		fbin[i] = mclusterarrd_.fracb[i];
+		fbin_reference[i] = mclusterarrd_.fracb_reference[i];
 		W0[i] = mclusterarrd_.w0[i];
 		conc_pop[i] = mclusterarrd_.conc_pop[i];
 		S[i] = mclusterarrd_.Seg[i];
@@ -209,7 +212,7 @@ int main (int argv, char **argc) {
 	 * Start *
 	 *********/
 
-	printf("\n-----START----         \n"); 
+	printf("\n-----START----         \n");
 
 #ifdef NOOMP
 	clock_t t1, t2;
@@ -268,6 +271,12 @@ int main (int argv, char **argc) {
 	for(i=0; i<10; i++){
 		if(N[i]) numberofpop++;
 	}
+
+	if (!areArrayEqual(fbin,fbin_reference)){
+		printf(" INFO Determining number of stars for each population from the reference binary fraction\n");
+		determine_new_number_of_stars_from_reference_model(N,fbin,fbin_reference,mfunc,mlow,mup,numberofpop);
+	}
+
 // number of stars and binaries for each stellar population
 	int Ntot = 0, Nbintot = 0;
 	int Nsub = 0, Nbinsub = 0;
@@ -1865,7 +1874,7 @@ int generate_m1(int *N, double **star, double mlow, double mup, double *M, doubl
 	for (i=0; i<*N; i++) {
 //		do{
 			do {
-				xx = drand48();		
+				xx = drand48();
 				if (xx<k1/k2)   
 					star[i+N2][0] = pow(0.5*c1*xx*k2+pow(mlow,c1),1.0/c1);
 				else 
@@ -2563,7 +2572,7 @@ int generate_plummer(int N, double **star, double rtide, double rvir, double D, 
 	printf("Setting cut-off radius of Plummer sphere to approximate tidal radius\n");
 	rcut = rtide/(sx*rvir);		//cut-off radius for Plummer sphere = tidal radius in scaled length
 
-	printf("\nGenerating Orbits:\n");	
+	printf("\nGenerating Orbits:\n");
 
 	if (D>=3.0) {
 		
@@ -2578,7 +2587,7 @@ int generate_plummer(int N, double **star, double rtide, double rvir, double D, 
 			} while (a[1]<1.0E-10);
 			ri = 1.0/sqrt(pow(a[1],-2.0/3.0) - 1.0);
 			
-			a[2] = drand48(); 
+			a[2] = drand48();
 			a[3] = drand48();
 		
 			star[i+N2][3] = (1.0 - 2.0*a[2])*ri;
@@ -2588,14 +2597,14 @@ int generate_plummer(int N, double **star, double rtide, double rvir, double D, 
 		
 		//velocities
 		do {
-			a[4] = drand48(); 
-			a[5] = drand48(); 
+			a[4] = drand48();
+			a[5] = drand48();
 			a[6] = pow(a[4],2)*pow(1.0 - pow(a[4],2),3.5);
 		} while (0.1*a[5]>a[6]);
 		
 		a[8] = a[4]*sqrt(2.0)/pow(1.0 + ri*ri,0.25);
-		a[6] = drand48(); 
-		a[7] = drand48(); 
+		a[6] = drand48();
+		a[7] = drand48();
 			
 		star[i+N2][6] = (1.0 - 2.0*a[6])*a[8];
 		star[i+N2][4] = sqrt(a[8]*a[8] - pow(star[i+N2][6],2))*cos(TWOPI*a[7]);
@@ -4496,7 +4505,7 @@ int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis
 				double ralpha = 1/alpha, eta = alpha/0.23;
 				lP = pow(pow(lPmin,alpha) + eta*drand48(),ralpha);
 	  		} else {
-			//derive from Sana & Evans (2011) period distribution for massive binaries
+				//derive from Sana & Evans (2011) period distribution for massive binaries
 				double lPmin = 0.3, lPmax = 3.5, lPbreak = 1.0; //parameters of Sana & Evans (2011) period distribution in days (eq. 5.1)
 				double Fbreak = 0.5; //fraction of binaries with periods below Pbreak
 				double xperiod = drand48();
@@ -4505,7 +4514,7 @@ int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis
 				} else {
 					lP = (xperiod - Fbreak)*(lPmax-lPbreak)/(1.0-Fbreak) + lPbreak;
 				}
-	  		}
+		}
 
 			P = pow(10.0,lP);//days
 			P /= 365.25;//yr
@@ -4595,7 +4604,6 @@ int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis
 //					else  eigenevolution_old(&m2, &m1, &ecc, &abin, M, rvir);
 			}
 		}
-
 		//Apply new eigenevolution and feeding algorithm - Kroupa (2013), rewied in Belloni et al. (2017) 
 		if (eigen==2) {
 			if (!i) printf("\nApplying new eigenevolution and feeding algorithm - Kroupa (2013)\n");
@@ -4992,27 +5000,27 @@ int order(double **star, int N, double M, double msort, int pairing, int N2, dou
             if (i<N-1) {
 		double mpair = (drand48()*0.9+0.1)*masses[i][0];
 		// second index
-				int k = -1;
-				// find closest one
-				int k1 = i+1;
-				while (k1<N && mask[k1]==1) k1++;
-				if (k1<N) {
-					double mk = fabs(masses[k1][0]-mpair);
-					double dm = mk;
-					int k2 = k1;
-						do {
-							k1 = k2;
-							mk = dm;
-							k2++;
-							while (k2<N && mask[k2]==1) k2++;
-							if(k2<N) dm = fabs(masses[k2][0]-mpair);
-							else dm=mk;
-						} while(dm<mk);
-						k = k1;
-						//printf("mass_ratio(true,real): %f %f\n",mpair/masses[i][0], masses[k][0]/masses[i][0]);
-//						if(dm/mpair>1e-2) 
-//              	    printf("WARNING: dm too large: m1=%F, mp=%f, m2=%f, dm=%f, i=%d, k=%d\n",masses[i][0],mpair,masses[k][0],dm,i,k);
-				}
+		int k = -1;
+		// find closest one
+		int k1 = i+1;
+		while (k1<N && mask[k1]==1) k1++;
+		if (k1<N) {
+			double mk = fabs(masses[k1][0]-mpair);
+			double dm = mk;
+			int k2 = k1;
+			do {
+				k1 = k2;
+				mk = dm;
+				k2++;
+				while (k2<N && mask[k2]==1) k2++;
+				if(k2<N) dm = fabs(masses[k2][0]-mpair);
+				else dm=mk;
+			} while(dm<mk);
+			k = k1;
+			//printf("mass_ratio(true,real): %f %f\n",mpair/masses[i][0], masses[k][0]/masses[i][0]);
+//			if(dm/mpair>1e-2) 
+//			printf("WARNING: dm too large: m1=%F, mp=%f, m2=%f, dm=%f, i=%d, k=%d\n",masses[i][0],mpair,masses[k][0],dm,i,k);
+		}
               //printf("mpair =%f, k=%d, i=%d, mass[k]=%f\n",mpair,k,i,masses[k][0]);
 /*
               int k = i+1;
@@ -5255,85 +5263,84 @@ int segregate(double **star, int N, double S, int N2){
 		}
 	}
 
-    int ncount_bin=((int)sqrt(N))/10*10;
-    if (N<100) ncount_bin=10;
-    if (N<10) ncount_bin=1;
-    int ncount_binsize=N/ncount_bin+1;
-    int n_count[ncount_bin];
+	int ncount_bin=((int)sqrt(N))/10*10;
+	if (N<100) ncount_bin=10;
+	if (N<10) ncount_bin=1;
+	int ncount_binsize=N/ncount_bin+1;
+  	int n_count[ncount_bin];
 	
 	for (i=0;i<N;i++) {
 		masses[i][0] = star[i+N2][0];
 		masses[i][1] = i+N2;
 	}
 	
-	shellsort(masses, N, 2);	
+	shellsort(masses, N, 2);
 
 	for (i=0;i<N;i++) star_temp[i][0] = 0.0;
-    for (i=0;i<ncount_bin;i++) n_count[i] = 0;
+	for (i=0;i<ncount_bin;i++) n_count[i] = 0;
 	
 	j = 0;
 	int Ntemp,l,lbin;
 	Ntemp = N;
-    // Fully mass segregated case, no need to random pick up
-    if(S==1.0) {
-        printf("Sorted mass\n");
-        for (i=0;i<N;i++) {
-            star_temp[i][0] = star[(int) masses[i][1]][0];
-            star_temp[i][1] = star[(int) masses[i][1]][1];
-            star_temp[i][2] = star[(int) masses[i][1]][2];
-            star_temp[i][3] = star[(int) masses[i][1]][3];
-            star_temp[i][4] = star[(int) masses[i][1]][4];
-            star_temp[i][5] = star[(int) masses[i][1]][5];
-            star_temp[i][6] = star[(int) masses[i][1]][6];
-            star_temp[i][7] = star[(int) masses[i][1]][7];
-            star_temp[i][8] = star[(int) masses[i][1]][8];
-            star_temp[i][9] = star[(int) masses[i][1]][9];
-            star_temp[i][10] = star[(int) masses[i][1]][10];
-            star_temp[i][11] = star[(int) masses[i][1]][11];
-            star_temp[i][12] = star[(int) masses[i][1]][12];
-            star_temp[i][13] = star[(int) masses[i][1]][13];
-            star_temp[i][14] = star[(int) masses[i][1]][14];
-        }
-    }
-    else{
-        for (i=0;i<N;i++) {
-            j = 1.0*(1.0-pow(drand48(),1.0-S))*Ntemp;
-            // to reduce computing time, gether occupied index number into bins, then check each bin before index j
-            lbin=-1;
-            do {
-                lbin++;
-                l = lbin*ncount_binsize;
-                if (j<(lbin+1)*ncount_binsize) break;
-                if (n_count[lbin]) j+=n_count[lbin];
-            } while (1);
-            // finally check the index in the last bin
-            l--;
-            do {
-                l++;
-                if (star_temp[l][0]) {
-                    j++;
-                }
-            } while (l<j);
-            n_count[j/ncount_binsize]++;
-            star_temp[j][0] = star[(int) masses[i][1]][0];
-            star_temp[j][1] = star[(int) masses[i][1]][1];
-            star_temp[j][2] = star[(int) masses[i][1]][2];
-            star_temp[j][3] = star[(int) masses[i][1]][3];
-            star_temp[j][4] = star[(int) masses[i][1]][4];
-            star_temp[j][5] = star[(int) masses[i][1]][5];
-            star_temp[j][6] = star[(int) masses[i][1]][6];
-            star_temp[j][7] = star[(int) masses[i][1]][7];
-            star_temp[j][8] = star[(int) masses[i][1]][8];
-            star_temp[j][9] = star[(int) masses[i][1]][9];
-            star_temp[j][10] = star[(int) masses[i][1]][10];
-            star_temp[j][11] = star[(int) masses[i][1]][11];
-            star_temp[j][12] = star[(int) masses[i][1]][12];
-            star_temp[j][13] = star[(int) masses[i][1]][13];
-            star_temp[j][14] = star[(int) masses[i][1]][14];
-            Ntemp--;
-        }
-        for (i=0; i<N;i++) assert(star_temp[i][0]>0.0);
-    }	
+	// Fully mass segregated case, no need to random pick up
+	if(S==1.0) {
+		printf("Sorted mass\n");
+		for (i=0;i<N;i++) {
+			star_temp[i][0] = star[(int) masses[i][1]][0];
+			star_temp[i][1] = star[(int) masses[i][1]][1];
+			star_temp[i][2] = star[(int) masses[i][1]][2];
+			star_temp[i][3] = star[(int) masses[i][1]][3];
+			star_temp[i][4] = star[(int) masses[i][1]][4];
+			star_temp[i][5] = star[(int) masses[i][1]][5];
+			star_temp[i][6] = star[(int) masses[i][1]][6];
+			star_temp[i][7] = star[(int) masses[i][1]][7];
+			star_temp[i][8] = star[(int) masses[i][1]][8];
+			star_temp[i][9] = star[(int) masses[i][1]][9];
+			star_temp[i][10] = star[(int) masses[i][1]][10];
+			star_temp[i][11] = star[(int) masses[i][1]][11];
+			star_temp[i][12] = star[(int) masses[i][1]][12];
+			star_temp[i][13] = star[(int) masses[i][1]][13];
+			star_temp[i][14] = star[(int) masses[i][1]][14];
+		}
+	} else {
+		for (i=0;i<N;i++) {
+			j = 1.0*(1.0-pow(drand48(),1.0-S))*Ntemp;
+			// to reduce computing time, gether occupied index number into bins, then check each bin before index j
+			lbin=-1;
+			do {
+				lbin++;
+				l = lbin*ncount_binsize;
+				if (j<(lbin+1)*ncount_binsize) break;
+				if (n_count[lbin]) j+=n_count[lbin];
+			} while (1);
+			// finally check the index in the last bin
+			l--;
+			do {
+				l++;
+				if (star_temp[l][0]) {
+					j++;
+				}
+			} while (l<j);
+			n_count[j/ncount_binsize]++;
+			star_temp[j][0] = star[(int) masses[i][1]][0];
+			star_temp[j][1] = star[(int) masses[i][1]][1];
+			star_temp[j][2] = star[(int) masses[i][1]][2];
+			star_temp[j][3] = star[(int) masses[i][1]][3];
+			star_temp[j][4] = star[(int) masses[i][1]][4];
+			star_temp[j][5] = star[(int) masses[i][1]][5];
+			star_temp[j][6] = star[(int) masses[i][1]][6];
+			star_temp[j][7] = star[(int) masses[i][1]][7];
+			star_temp[j][8] = star[(int) masses[i][1]][8];
+			star_temp[j][9] = star[(int) masses[i][1]][9];
+			star_temp[j][10] = star[(int) masses[i][1]][10];
+			star_temp[j][11] = star[(int) masses[i][1]][11];
+			star_temp[j][12] = star[(int) masses[i][1]][12];
+			star_temp[j][13] = star[(int) masses[i][1]][13];
+			star_temp[j][14] = star[(int) masses[i][1]][14];
+			Ntemp--;
+		}
+		for (i=0; i<N;i++) assert(star_temp[i][0]>0.0);
+	}	
 	
 	//copying back to original array
 	for (i=0;i<N;i++) {
@@ -6021,3 +6028,63 @@ double determine_rvir(double rh_mcl, double Mtotal, double M0, int tf, double rt
 	}
 	return rvir;
 }
+
+bool areArrayEqual(double *arr1, double *arr2) {
+	int n = sizeof(arr1) / sizeof(double);
+	int i;
+	for(i=0;i<n; i++)
+		if (arr1[i] != arr2[i])
+			return false;
+	return true;
+}
+
+void determine_new_number_of_stars_from_reference_model(int *N,double *fbin,double *fbin_reference,int *mfunc, double *mlow,double *mup,int numberofpop){
+	if(numberofpop != 2){
+		printf(" INFO The determination of number of object from a reference model has been implemented only for two populations.\nExit\n\n");
+		exit(1);
+	}
+	int i;
+	for (i=0;i<numberofpop; i++){
+		if(mfunc[i] != 1){
+			printf(" INFO The determination of number of object from a reference model has been implemented only for Kroupa (2001) IMF.\nExit\n\n");
+			exit(1);
+		}
+	}
+	
+	int N_reference[numberofpop];
+	double average_mass_reference[numberofpop], Mtotal_reference = 0.0;
+
+	for (i=0;i<numberofpop; i++){
+		N_reference[i] = N[i];
+		average_mass_reference[i] = determine_average_mass_from_analytical_IMF(mlow[i],mup[i]);
+		Mtotal_reference += N_reference[i] * (1.0 + fbin_reference[i]) * average_mass_reference[i];
+	}
+	printf(" INFO Total mass for the reference model %f [MSun]\n", Mtotal_reference);
+
+	double average_mass[numberofpop], Mtotal;
+	for (i=0;i<numberofpop; i++) {
+		average_mass[i] = determine_average_mass_from_analytical_IMF(mlow[i],mup[i]);
+	}
+
+	determine_new_number_of_stars(N,N_reference,Mtotal_reference,fbin,fbin_reference,average_mass);
+	for (i=0;i<numberofpop; i++){
+		printf(" INFO The number of object in the population %i has been modified to %i\n", i+1,N[i]);
+		printf(" INFO Initial population fraction for population %i: %f\n", i+1,(double) N_reference[i]/(N_reference[0]+N_reference[1]));
+		printf(" INFO New population fraction for population %i: %f\n", i+1,(double) N[i]/(N[0]+N[1]));
+	}
+}
+
+double determine_average_mass_from_analytical_IMF(double mlow,double mup){
+	double alpha1 = 1.3, alpha2 = 2.3, mass_break = 0.5;
+
+	double M_tot = mass_break * ( mass_break/(2.0 - alpha1) * ( 1.0 - pow(mlow/mass_break,2.0-alpha1)) +  mass_break/(2.0 - alpha2) * ( pow(mup/mass_break,2.0-alpha2) - 1.0  ) );
+	double N_tot = ( mass_break/(1.0 - alpha1) * ( 1.0 - pow(mlow/mass_break,1.0-alpha1)) +  mass_break/(1.0 - alpha2) * ( pow(mup/mass_break,1.0-alpha2) - 1.0  ) );
+	double average_mass = M_tot/N_tot;
+	return average_mass;
+}
+
+void determine_new_number_of_stars(int *N, int *N_reference, double Mtotal_reference,double *fbin,double *fbin_reference, double *average_mass){
+	N[0] = (int) ((double)N_reference[0]) * Mtotal_reference / (((double)N_reference[0]) * (1.0 + fbin[0]) * average_mass[0] + ((double)N_reference[1]) * (1.0 + fbin[1]) * average_mass[1]);
+	N[1] = (int) ((double)N[0]) * ((double)N_reference[1]) / ((double)N_reference[0]);
+}
+
