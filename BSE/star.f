@@ -53,23 +53,23 @@
 *
 *
       mass0 = mass
-*     if(mass0.gt.100.d0) mass = 100.d0
+      if(mass0.gt.100.d0) mass = 100.d0
 *
       if(kw.ge.7.and.kw.le.9) goto 90
       if(kw.ge.10) goto 95
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* MS and BGB times                                                             *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* MS and BGB times
+*
       tscls(1) = tbgbf(mass)
       tm = MAX(zpars(8),thookf(mass))*tscls(1)
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Zero- and terminal age main sequence luminosity                              *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* Zero- and terminal age main sequence luminosity
+*
       lums(1) = lzamsf(mass)
       lums(2) = ltmsf(mass)
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Set the GB parameters                                                        *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* Set the GB parameters
+*
       GB(1) = MAX(-4.8d0,MIN(-5.7d0+0.8d0*mass,-4.1d0+0.14d0*mass))
       GB(1) = 10.d0**GB(1)
       GB(2) = 1.27d-05
@@ -92,11 +92,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       endif
       GB(4) = 10.d0**GB(4)
       GB(7) = (GB(3)/GB(4))**(1.d0/(GB(5)-GB(6)))
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Change in slope of giant L-Mc relation.                                      *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* Change in slope of giant L-Mc relation.
       lums(6) = GB(4)*GB(7)**GB(5)
 *
+* HeI ignition luminosity
+      lums(4) = lHeIf(mass,zpars(2)) 
+      lums(7) = lbagbf(mass,zpars(2))
 *
       if(mass.lt.0.1d0.and.kw.le.1)then
          tscls(2) = 1.1d0*tscls(1)
@@ -104,29 +106,18 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          lums(3) = lbgbf(mass) 
          goto 96
       endif
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* HeI ignition luminosity                                                      *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      lums(4) = lHeIf(mass,zpars(2)) 
-      lums(7) = lbagbf(mass,zpars(2))
 *
       if(mass.le.zpars(3))then
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Base of the giant branch luminosity                                          *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Base of the giant branch luminosity
          lums(3) = lbgbf(mass) 
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Set GB timescales                                                            *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Set GB timescales 
          tscls(4) = tscls(1) + (1.d0/((GB(5)-1.d0)*GB(1)*GB(4)))*
      &              ((GB(4)/lums(3))**((GB(5)-1.d0)/GB(5)))
          tscls(6) = tscls(4) - (tscls(4) - tscls(1))*((lums(3)/lums(6))
      &              **((GB(5)-1.d0)/GB(5)))
          tscls(5) = tscls(6) + (1.d0/((GB(6)-1.d0)*GB(1)*GB(3)))*
      &              ((GB(3)/lums(6))**((GB(6)-1.d0)/GB(6)))
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Set Helium ignition time                                                     *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Set Helium ignition time
          if(lums(4).le.lums(6))then
             tscls(2) = tscls(4) - (1.d0/((GB(5)-1.d0)*GB(1)*GB(4)))*
      &                      ((GB(4)/lums(4))**((GB(5)-1.d0)/GB(5)))
@@ -145,25 +136,19 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             tscls(3) = tHef(mass,1.d0,zpars(2))*tscls(1)
          endif
       else
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Note that for M>zpars(3) there is no GB as the star goes from                *
-* HG -> CHeB -> AGB. So in effect tscls(1) refers to the time of               *
-* Helium ignition and not the BGB.                                             *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Note that for M>zpars(3) there is no GB as the star goes from
+* HG -> CHeB -> AGB. So in effect tscls(1) refers to the time of
+* Helium ignition and not the BGB.
          tscls(2) = tscls(1)
          tscls(3) = tHef(mass,1.d0,zpars(2))*tscls(1)
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* This now represents the luminosity at the end of CHeB, ie. BAGB              *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* This now represents the luminosity at the end of CHeB, ie. BAGB
          lums(5) = lums(7)
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* We set lums(3) to be the luminosity at the end of the HG                     *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* We set lums(3) to be the luminosity at the end of the HG
          lums(3) = lums(4)
       endif
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Set the core mass at the BGB.                                                *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* Set the core mass at the BGB.
+*
       if(mass.le.zpars(2))then
          GB(9) = mcgbf(lums(3),GB,lums(6))
       elseif(mass.le.zpars(3))then
@@ -171,9 +156,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       else
          GB(9) = mcheif(mass,zpars(2),zpars(10))
       endif
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* FAGB time parameters                                                         *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* FAGB time parameters
+*
       tbagb = tscls(2) + tscls(3)
       tscls(7) = tbagb + (1.d0/((GB(5)-1.d0)*GB(8)*GB(4)))*
      &               ((GB(4)/lums(7))**((GB(5)-1.d0)/GB(5)))
@@ -181,15 +166,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &                                    **((GB(5)-1.d0)/GB(5)))
       tscls(8) = tscls(9) + (1.d0/((GB(6)-1.d0)*GB(8)*GB(3)))*
      &               ((GB(3)/lums(6))**((GB(6)-1.d0)/GB(6)))
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Now to find Ltp and ttp using Mc,He,tp                                       *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* Now to find Ltp and ttp using Mc,He,tp
+*
       mcbagb = mcagbf(mass)
       mc1 = mcbagb
       if(mc1.ge.0.8d0.and.mc1.lt.2.25d0)then
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* The star undergoes dredge-up at Ltp causing a decrease in Mc,He              *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* The star undergoes dredge-up at Ltp causing a decrease in Mc,He
          mc1 = 0.44d0*mc1 + 0.448d0
       endif
       lums(8) = lmcgbf(mc1,GB)
@@ -200,9 +183,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          tscls(13) = tscls(8) - (1.d0/((GB(6)-1.d0)*GB(8)*GB(3)))*
      &                   (mc1**(1.d0-GB(6)))
       endif
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* SAGB time parameters                                                         *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* SAGB time parameters
+*
       if(mc1.le.GB(7))then
          tscls(10) = tscls(13) + (1.d0/((GB(5)-1.d0)*GB(2)*GB(4)))*
      &               ((GB(4)/lums(8))**((GB(5)-1.d0)/GB(5)))
@@ -216,19 +199,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          tscls(11) = tscls(13) + (1.d0/((GB(6)-1.d0)*GB(2)*GB(3)))*
      &               ((GB(3)/lums(8))**((GB(6)-1.d0)/GB(6)))
       endif
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Get an idea of when Mc,C = Mc,C,max on the AGB                               *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* Get an idea of when Mc,C = Mc,C,max on the AGB
       tau = tscls(2) + tscls(3)
       mc2 = mcgbtf(tau,GB(8),GB,tscls(7),tscls(8),tscls(9))
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-CCCC CHANGED BY Albrecht - based on NBODY6 - 03.08.2020                        *
-      mcmax = max(max(mch,0.773d0*mcbagb - 0.35d0),1.02d0*mc2)
-      if(mcbagb.ge.1.6d0.and.mcbagb.le.2.25d0)then
-         mcmax = MAX(MAX(1.372d0,0.773d0*mcbagb - 0.35d0),1.02d0*mc2)
-      endif
-CCCC CHANGED BY Albrecht - based on NBODY6 - 03.08.2020                        *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      mcmax = MAX(MAX(mch,0.773d0*mcbagb - 0.35d0),1.05d0*mc2)
 *
       if(mcmax.le.mc1)then
          if(mcmax.le.GB(7))then
@@ -239,10 +214,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &                      (mcmax**(1.d0-GB(6)))
          endif
       else
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Star is on SAGB and we need to increase mcmax if any 3rd                     *
-* dredge-up has occurred.                                                      *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Star is on SAGB and we need to increase mcmax if any 3rd
+* dredge-up has occurred.
          lambda = MIN(0.9d0,0.3d0+0.001d0*mass**5)
          mcmax = (mcmax - lambda*mc1)/(1.d0 - lambda)
          if(mcmax.le.GB(7))then
@@ -254,26 +227,24 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          endif
       endif
       tscls(14) = MAX(tbagb,tscls(14))
-*     if(mass.ge.100.d0)then       ! Higher masses 100 M* 
-*        tn = tscls(2)
-*        goto 100
-*    endif
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Calculate the nuclear timescale - the time of exhausting                     *
-* nuclear fuel without further mass loss.                                      *
-* This means we want to find when Mc = Mt which defines Tn and will            *
-* be used in determining the timestep required. Note that after some           *
-* stars reach Mc = Mt there will be a Naked Helium Star lifetime               *
-* which is also a nuclear burning period but is not included in Tn.            *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      if(mass.ge.100.d0)then
+         tn = tscls(2)
+         goto 100
+      endif
+*
+* Calculate the nuclear timescale - the time of exhausting
+* nuclear fuel without further mass loss.
+* This means we want to find when Mc = Mt which defines Tn and will
+* be used in determining the timestep required. Note that after some 
+* stars reach Mc = Mt there will be a Naked Helium Star lifetime
+* which is also a nuclear burning period but is not included in Tn.
+*
       if(ABS(mt-mcbagb).lt.1.0d-14.and.kw.lt.5)then
          tn = tbagb
       else
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Note that the only occurence of Mc being double-valued is for stars          *
-* that have a dredge-up. If Mt = Mc where Mc could be the value taken          *
-* from CHeB or from the AGB we need to check the current stellar type.         *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Note that the only occurence of Mc being double-valued is for stars
+* that have a dredge-up. If Mt = Mc where Mc could be the value taken
+* from CHeB or from the AGB we need to check the current stellar type.
          if(mt.gt.mcbagb.or.(mt.ge.mc1.and.kw.gt.4))then
             if(kw.eq.6)then
                lambda = MIN(0.9d0,0.3d0+0.001d0*mass**5)
@@ -330,20 +301,20 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       goto 100
 *
  90   continue
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Calculate Helium star Main Sequence lifetime.                                *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* Calculate Helium star Main Sequence lifetime.
+*
       tm = themsf(mass)
       tscls(1) = tm
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Zero- and terminal age Helium star main sequence luminosity                  *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* Zero- and terminal age Helium star main sequence luminosity
+*
       lums(1) = lzhef(mass)
       am = MAX(0.d0,0.85d0-0.08d0*mass)
       lums(2) = lums(1)*(1.d0+0.45d0+am)
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC 
-* Set the Helium star GB parameters                                            *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* Set the Helium star GB parameters
+*
       GB(8) = 8.0d-05
       GB(3) = 4.1d+04
       GB(4) = 5.5d+04/(1.d0+0.4d0*mass**4)
@@ -352,9 +323,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       GB(7) = (GB(3)/GB(4))**(1.d0/(GB(5)-GB(6)))
 * Change in slope of giant L-Mc relation.
       lums(6) = GB(4)*GB(7)**GB(5)
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Set Helium star GB timescales                                                *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+*** Set Helium star GB timescales 
+*
       mc1 = mcgbf(lums(2),GB,lums(6))
       tscls(4) = tm + (1.d0/((GB(5)-1.d0)*GB(8)*GB(4)))*
      &                                          mc1**(1.d0-GB(5))
@@ -362,9 +333,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &                                     **(1.d0-GB(5)))
       tscls(5) = tscls(6) + (1.d0/((GB(6)-1.d0)*GB(8)*GB(3)))*
      &                                       GB(7)**(1.d0-GB(6))
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-* Get an idea of when Mc = MIN(Mt,Mc,C,max) on the GB                          *
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*
+* Get an idea of when Mc = MIN(Mt,Mc,C,max) on the GB
       mtc = MIN(mt,1.45d0*mt-0.31d0)
       if(mtc.le.0.d0) mtc = mt
       mcmax = MIN(mtc,MAX(mch,0.773d0*mass-0.35d0))
