@@ -18,6 +18,8 @@
       COMMON /TYPES/ KTYPE
       INTEGER ceflag,tflag,ifflag,nsflag,wdflag
       COMMON /FLAGS/ ceflag,tflag,ifflag,nsflag,wdflag
+      INTEGER psflag,ecflag
+      COMMON /FLAGS1/ psflag,ecflag
 *
       REAL*8 M01,M1,MC1,AJ1,JSPIN1,R1,L1,K21
       REAL*8 M02,M2,MC2,AJ2,JSPIN2,R2,L2,K22,MC22
@@ -28,21 +30,26 @@
       REAL*8 RC1,RC2,Q1,Q2,RL1,RL2,LAMB1,LAMB2
       REAL*8 MENV,RENV,MENVD,RZAMS,VS(3)
       REAL*8 AURSUN,K3,ALPHA1,LAMBDA
-      PARAMETER (AURSUN = 214.95D0,K3 = 0.21D0) 
+      parameter (aursun = 215.09705248d0,k3 = 0.21d0) !214.95d0,k3 = 0.21d0)
       COMMON /VALUE2/ ALPHA1,LAMBDA
       LOGICAL COEL
       REAL*8 CELAMF,RL,RZAMSF
       EXTERNAL CELAMF,RL,RZAMSF
-*
+      INTEGER bhflag 
+      REAL*8 disp
+      COMMON /VALUE4/ disp,bhflag
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 * Common envelope evolution - entered only when KW1 = 2, 3, 4, 5, 6, 8 or 9.
+* kw = 2 is no longer allowed to have CEP outcome, i.e. it merges with the donor
 *
 * For simplicity energies are divided by -G.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       TWOPI = 2.D0*ACOS(-1.D0)
       COEL = .FALSE.
-*
-* Obtain the core masses and radii.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Obtain the core masses and radii.                                            *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       KW = KW1
       CALL star(KW1,M01,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS)
       CALL hrdiag(M01,AJ1,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS,
@@ -56,37 +63,37 @@
       CALL hrdiag(M02,AJ2,M2,TM2,TN,TSCLS2,LUMS,GB,ZPARS,
      &            R2,L2,KW2,MC2,RC2,MENV,RENV,K22)
       OSPIN2 = JSPIN2/(K22*R2*R2*(M2-MC2)+K3*RC2*RC2*MC2)
-*
-* Calculate the binding energy of the giant envelope (multiplied by lambda).
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Calculate the binding energy of the giant envelope (multiplied by lambda).   *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       EBINDI = M1*(M1-MC1)/(LAMB1*R1)
-*
-* If the secondary star is also giant-like add its envelopes's energy.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* If the secondary star is also giant-like add its envelopes's energy.         *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       EORBI = M1*M2/(2.D0*SEP)
       IF(KW2.GE.2.AND.KW2.LE.9.AND.KW2.NE.7)THEN
          MENVD = MENV/(M2-MC2)
          RZAMS = RZAMSF(M02)
          LAMB2 = CELAMF(KW,M02,L2,R2,RZAMS,MENVD,LAMBDA)
          EBINDI = EBINDI + M2*(M2-MC2)/(LAMB2*R2)
-*
-* Calculate the initial orbital energy
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Calculate the initial orbital energy                                         *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          IF(CEFLAG.NE.3) EORBI = MC1*MC2/(2.D0*SEP)
       ELSE
          IF(CEFLAG.NE.3) EORBI = MC1*M2/(2.D0*SEP)
       ENDIF
-*
-* Allow for an eccentric orbit.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Allow for an eccentric orbit.                                                *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       ECIRC = EORBI/(1.D0 - ECC*ECC)
-*
-* Calculate the final orbital energy without coalescence.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Calculate the final orbital energy without coalescence.                      *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       EORBF = EORBI + EBINDI/ALPHA1
-*
-* If the secondary is on the main sequence see if it fills its Roche lobe.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* If the secondary is on the main sequence see if it fills its Roche lobe.     *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       IF(KW2.LE.1.OR.KW2.EQ.7)THEN
          SEPF = MC1*M2/(2.D0*EORBF)
          Q1 = MC1/M2
@@ -94,10 +101,10 @@
          RL1 = RL(Q1)
          RL2 = RL(Q2)
          IF(RC1/RL1.GE.R2/RL2)THEN
-*
-* The helium core of a very massive star of type 4 may actually fill
-* its Roche lobe in a wider orbit with a very low-mass secondary.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* The helium core of a very massive star of type 4 may actually fill           *
+* its Roche lobe in a wider orbit with a very low-mass secondary.              *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             IF(RC1.GT.RL1*SEPF)THEN
                COEL = .TRUE.
                SEPL = RC1/RL1
@@ -113,30 +120,36 @@
             KW = KTYPE(KW1,KW2) - 100
             MC3 = MC1
             IF(KW2.EQ.7.AND.KW.EQ.4) MC3 = MC3 + M2
-*
-* Coalescence - calculate final binding energy.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Coalescence - calculate final binding energy.                                *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             EORBF = MAX(MC1*M2/(2.D0*SEPL),EORBI)
             EBINDF = EBINDI - ALPHA1*(EORBF - EORBI)
          ELSE
-*
-* Primary becomes a black hole, neutron star, white dwarf or helium star.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Primary becomes a black hole, neutron star, white dwarf or helium star.      *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             MF = M1
             M1 = MC1
             CALL star(KW1,M01,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS)
             CALL hrdiag(M01,AJ1,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS,
      &                  R1,L1,KW1,MC1,RC1,MENV,RENV,K21)
-            IF(KW1.GE.13)THEN
+* CCCCCCCC Albrecht - 03.08.2020	          
+            if (kw1.eq.15) then
+              ecc = 1.1d0
+              sepf = 0.0d0
+              coel = .TRUE.
+              goto 30
+            else IF(KW1.GE.13)THEN
                CALL kick(KW1,MF,M1,M2,ECC,SEPF,JORB,VS)
                IF(ECC.GT.1.D0) GOTO 30
             ENDIF
          ENDIF
       ELSE
-*
-* Degenerate or giant secondary. Check if the least massive core fills its
-* Roche lobe.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Degenerate or giant secondary. Check if the least massive core fills its     *
+* Roche lobe.                                                                  *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          SEPF = MC1*MC2/(2.D0*EORBF)
          Q1 = MC1/MC2
          Q2 = 1.D0/Q1
@@ -155,10 +168,10 @@
          ENDIF
 *
          IF(COEL)THEN
-*
-* If the secondary was a neutron star or black hole the outcome
-* is an unstable Thorne-Zytkow object that leaves only the core.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* If the secondary was a neutron star or black hole the outcome                *
+* is an unstable Thorne-Zytkow object that leaves only the core.               *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             SEPF = 0.D0
             IF(KW2.GE.13)THEN
                MC1 = MC2
@@ -168,23 +181,23 @@
                KW1 = KW2
                KW2 = 15
                AJ1 = 0.D0
-*
-* The envelope mass is not required in this case.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* The envelope mass is not required in this case.                              *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                GOTO 30
             ENDIF
 *
             KW = KTYPE(KW1,KW2) - 100
             MC3 = MC1 + MC2
-*
-* Calculate the final envelope binding energy.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Calculate the final envelope binding energy.                                 *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             EORBF = MAX(MC1*MC2/(2.D0*SEPL),EORBI)
             EBINDF = EBINDI - ALPHA1*(EORBF - EORBI)
-*
-* Check if we have the merging of two degenerate cores and if so
-* then see if the resulting core will survive or change form.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Check if we have the merging of two degenerate cores and if so               *
+* then see if the resulting core will survive or change form.                  *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             IF(KW1.EQ.6.AND.(KW2.EQ.6.OR.KW2.GE.11))THEN
                CALL dgcore(KW1,KW2,KW,MC1,MC2,MC3,EBINDF)
             ENDIF
@@ -207,9 +220,9 @@
             ENDIF
 *
          ELSE
-*
-* The cores do not coalesce - assign the correct masses and ages.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* The cores do not coalesce - assign the correct masses and ages.              *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             MF = M1
             M1 = MC1
             CALL star(KW1,M01,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS)
@@ -235,8 +248,10 @@
       IF(COEL)THEN
          MC22 = MC2
          IF(KW.EQ.4.OR.KW.EQ.7)THEN
-* If making a helium burning star calculate the fractional age 
-* depending on the amount of helium that has burnt.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* If making a helium burning star calculate the fractional age                 *
+* depending on the amount of helium that has burnt.                            *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             IF(KW1.LE.3)THEN
                FAGE1 = 0.D0
             ELSEIF(KW1.GE.6)THEN
@@ -256,14 +271,14 @@
             ENDIF
          ENDIF
       ENDIF
-*
-* Now calculate the final mass following coelescence.  This requires a
-* Newton-Raphson iteration.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Now calculate the final mass following coelescence.  This requires a         *
+* Newton-Raphson iteration.                                                    *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       IF(COEL)THEN
-*
-* Calculate the orbital spin just before coalescence. 
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Calculate the orbital spin just before coalescence.                          *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          TB = (SEPL/AURSUN)*SQRT(SEPL/(AURSUN*(MC1+MC2)))
          OORB = TWOPI/TB
 *
@@ -274,9 +289,9 @@
          ELSE
             CONST = ((M1+M2)**XX)*(M1-MC1+M2-MC22)*EBINDF/EBINDI
          ENDIF
-*
-* Initial Guess.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Initial Guess.                                                               *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          MF = MAX(MC1 + MC22,(M1 + M2)*(EBINDF/EBINDI)**(1.D0/XX))
    10    DELY = (MF**XX)*(MF - MC1 - MC22) - CONST
 *        IF(ABS(DELY/MF**(1.D0+XX)).LE.1.0D-02) GOTO 20
@@ -285,16 +300,16 @@
          DELMF = DELY/DERI
          MF = MF - DELMF
          GOTO 10
-*
-* Set the masses and separation.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Set the masses and separation.                                               *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
    20    IF(MC22.EQ.0.D0) MF = MAX(MF,MC1+M2)
          M2 = 0.D0
          M1 = MF
          KW2 = 15
-*
-* Combine the core masses.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Combine the core masses.                                                     *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          IF(KW.EQ.2)THEN
             CALL star(KW,M1,M1,TM2,TN,TSCLS2,LUMS,GB,ZPARS)
             IF(GB(9).GE.MC1)THEN
@@ -310,9 +325,9 @@
             IF(KW.EQ.4) AJ1 = (FAGE1*MC1 + FAGE2*MC22)/(MC1 + MC22)
             MC1 = MC1 + MC2
             MC2 = 0.D0
-*
-* Obtain a new age for the giant.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Obtain a new age for the giant.                                              *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             CALL gntage(MC1,M1,KW,ZPARS,M01,AJ1)
             CALL star(KW,M01,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS)
          ENDIF
@@ -322,28 +337,28 @@
          KW1 = KW
          ECC = 0.D0
       ELSE
-*
-* Check if any eccentricity remains in the orbit by first using 
-* energy to circularise the orbit before removing angular momentum. 
-* (note this should not be done in case of CE SN ... fix).  
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Check if any eccentricity remains in the orbit by first using                *
+* energy to circularise the orbit before removing angular momentum.            *
+* (note this should not be done in case of CE SN ... fix).                     *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          IF(EORBF.LT.ECIRC)THEN
             ECC = SQRT(1.D0 - EORBF/ECIRC)
          ELSE
             ECC = 0.D0
          ENDIF
-*
-* Set both cores in co-rotation with the orbit on exit of CE, 
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Set both cores in co-rotation with the orbit on exit of CE,                  *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          TB = (SEPF/AURSUN)*SQRT(SEPF/(AURSUN*(M1+M2)))
          OORB = TWOPI/TB
          JORB = M1*M2/(M1+M2)*SQRT(1.D0-ECC*ECC)*SEPF*SEPF*OORB
 *        JSPIN1 = OORB*(K21*R1*R1*(M1-MC1)+K3*RC1*RC1*MC1)
 *        JSPIN2 = OORB*(K22*R2*R2*(M2-MC2)+K3*RC2*RC2*MC2)
-*
-* or, leave the spins of the cores as they were on entry.
-* Tides will deal with any synchronization later.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* or, leave the spins of the cores as they were on entry.                      *
+* Tides will deal with any synchronization later.                              *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          JSPIN1 = OSPIN1*(K21*R1*R1*(M1-MC1)+K3*RC1*RC1*MC1)
          JSPIN2 = OSPIN2*(K22*R2*R2*(M2-MC2)+K3*RC2*RC2*MC2)
       ENDIF
@@ -351,3 +366,9 @@
       RETURN
       END
 ***
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* SOURCES                                                                             *
+* Claeys J. S. W., Pols O. R., Izzard R. G. et al., (2014, A&A, 563, A83)             *
+* Dewi J. S. M. & Tauris T. M. (2000 A&A, 360, 1043-)                                 *
+* Ivanova N., Justham S., Chen X. et al. (2013, A&A Review, 59-)                      *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

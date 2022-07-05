@@ -26,21 +26,27 @@
 *
       real*8 mcheif,mcagbf,mheif,mbagbf,mcgbf,lmcgbf,lbgbf,lbgbdf
       external mcheif,mcagbf,mheif,mbagbf,mcgbf,lmcgbf,lbgbf,lbgbdf
-*
-* This should only be entered with KW = 3, 4, 5, 6 or 9
-*
-* First we check that we don't have a CheB star 
-* with too small a core mass.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* This should only be entered with KW = 3, 4, 5, 6 or 9                        *
+*                                                                              *
+* First we check that we don't have a CheB star                                *
+* with too small a core mass.                                                  *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       if(kw.eq.4)then
-* Set the minimum CHeB core mass using M = Mflash
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Set the minimum CHeB core mass using M = Mflash                              *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC 
          mcy = mcheif(zpars(2),zpars(2),zpars(10))
          if(mc.le.mcy) kw = 3
 *        if(mc.le.mcy) WRITE(66,*)' GNTAGE4: changed to 3'
       endif
-*
-* Next we check that we don't have a GB star for M => Mfgb
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Next we check that we don't have a GB star for M => Mfgb                     *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       if(kw.eq.3)then
-* Set the maximum GB core mass using M = Mfgb
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Set the maximum GB core mass using M = Mfgb                                  *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          mcy = mcheif(zpars(3),zpars(2),zpars(9))
          if(mc.ge.mcy)then
             kw = 4
@@ -50,15 +56,17 @@
       endif
 *
       if(kw.eq.6)then
-*
-* We try to start the star from the start of the SAGB by
-* setting Mc = Mc,TP.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* We try to start the star from the start of the SAGB by                       *
+* setting Mc = Mc,TP.                                                          *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          mcy = 0.44d0*2.25d0 + 0.448d0
          if(mc.gt.mcy)then
-* A type 6 with this sized core mass cannot exist as it should
-* already have become a NS or BH as a type 5. 
-* We set it up so that it will.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* A type 6 with this sized core mass cannot exist as it should                 *
+* already have become a NS or BH as a type 5.                                  *
+* We set it up so that it will.                                                *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             mcx = (mc + 0.35d0)/0.773d0
          elseif(mc.ge.0.8d0)then
             mcx = (mc - 0.448d0)/0.44d0
@@ -67,40 +75,47 @@
          endif
          m0 = mbagbf(mcx)
          if(m0.lt.tiny)then
-* Carbon core mass is less then the minimum for the start of SAGB.
-* This must be the case of a low-mass C/O or O/Ne WD with only a
-* very small envelope added or possibly the merger of a helium star
-* with a main sequence star. We will set m0 = mt and then reset the
-* core mass to allow for some helium to be added to the C/O core.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Carbon core mass is less then the minimum for the start of SAGB.             *
+* This must be the case of a low-mass C/O or O/Ne WD with only a               *
+* very small envelope added or possibly the merger of a helium star            *
+* with a main sequence star. We will set m0 = mt and then reset the            *
+* core mass to allow for some helium to be added to the C/O core.              *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             kw = 14
 *           WRITE(66,*)' GNTAGE6: changed to 4'
          else
             CALL star(kw,m0,mt,tm,tn,tscls,lums,GB,zpars)
-            aj = tscls(13)
+* CCCCCCCC Albrecht - 03.08.2020
+            aj = tscls(13) + 2.d0*tiny
+            if(tscls(14).gt.tscls(13)) aj = MIN(aj,tscls(14))
          endif
       endif
 *
       if(kw.eq.5)then
-*
-* We fit a Helium core mass at the base of the AGB.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* We fit a Helium core mass at the base of the AGB.                            *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          m0 = mbagbf(mc)
          if(m0.lt.tiny)then
-* Helium core mass is less then the BAGB minimum.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Helium core mass is less then the BAGB minimum.                              *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             kw = 14
 *           WRITE(66,*)' GNTAGE5: changed to 4'
          else
             CALL star(kw,m0,mt,tm,tn,tscls,lums,GB,zpars)
-            aj = tscls(2) + tscls(3)
+*            aj = tscls(2) + tscls(3)
+            aj = tscls(2) + tscls(3) + 2.d0*tiny  ! added by Albrecht - 03.08.2020
          endif
       endif
 *
 *
       if(kw.eq.4)then
-*
-* The supplied age is actually the fractional age, fage, of CHeB lifetime
-* that has been completed, ie. 0 <= aj <= 1.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* The supplied age is actually the fractional age, fage, of CHeB lifetime      *
+* that has been completed, ie. 0 <= aj <= 1.                                   *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          if(aj.lt.0.d0.or.aj.gt.1.d0)then
 *           WRITE(99,*)' FATAL ERROR! GNTAGE4: fage out of bounds '
 *           WRITE(99,*)' FAGE ',aj
@@ -109,7 +124,9 @@
 *           STOP
             aj = 0.d0
          endif
-* Get the minimum, fage=1, and maximum, fage=0, allowable masses
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Get the minimum, fage=1, and maximum, fage=0, allowable masses               *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          mcy = mcagbf(zpars(2))
          if(mc.ge.mcy)then
             mmin = mbagbf(mc)
@@ -124,14 +141,18 @@
             m0 = mmin
             goto 20
          endif
-* Use the bisection method to find m0
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Use the bisection method to find m0                                          *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          fmid = (1.d0-aj)*mcheif(mmax,zpars(2),zpars(10)) +
      &          aj*mcagbf(mmax) - mc
          f = (1.d0-aj)*mcheif(mmin,zpars(2),zpars(10)) +
      &       aj*mcagbf(mmin) - mc
          if(f*fmid.ge.0.d0)then
-* This will probably occur if mc is just greater than the minimum
-* allowed mass for a CHeB star and fage > 0.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* This will probably occur if mc is just greater than the minimum              *
+* allowed mass for a CHeB star and fage > 0.                                   *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             kw = 3
 *           WRITE(66,*)' GNTAGE4: changed to 3'
             goto 90
@@ -164,8 +185,9 @@
  90   continue
 *
       if(kw.eq.3)then
-*
-* First we double check that we don't have a GB star for M => Mfgb
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* First we double check that we don't have a GB star for M => Mfgb             *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          mcy = mcheif(zpars(3),zpars(2),zpars(9))
          if(mc.ge.mcy)then
 *           WRITE(99,*)' GNTAGE3: star too big for GB '
@@ -174,12 +196,16 @@
 *           STOP
             mc = 0.99d0*mcy
          endif
-* Next we find an m0 so as to place the star at the BGB
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Next we find an m0 so as to place the star at the BGB                        *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          mcx = mcheif(zpars(2),zpars(2),zpars(9))
          if(mc.gt.mcx)then
             m0 = mheif(mc,zpars(2),zpars(9))
          else
-* Use Newton-Raphson to find m0 from Lbgb
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Use Newton-Raphson to find m0 from Lbgb                                      *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             m0 = zpars(2)
             CALL star(kw,m0,mt,tm,tn,tscls,lums,GB,zpars)
             lum = lmcgbf(mc,GB)
@@ -208,11 +234,11 @@
       endif
 *
       if(kw.eq.8.or.kw.eq.9)then
-*
-* We make a post-MS naked helium star.
-* To make things easier we put the star at the TMS point
-* so it actually begins as type 8.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* We make a post-MS naked helium star.                                         *
+* To make things easier we put the star at the TMS point                       *
+* so it actually begins as type 8.                                             *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          kw = 8
          mmin = mc
          CALL star(kw,mmin,mc,tm,tn,tscls,lums,GB,zpars)
@@ -243,7 +269,9 @@
  50      continue
  60      continue
          fmid = mcy - mc
-* Use the bisection method to find m0
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Use the bisection method to find m0                                          *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          if(f*fmid.ge.0.d0)then
 *           WRITE(99,*)' FATAL ERROR! GNTAGE9: root not bracketed '
 *           WRITE(*,*)' STOP: FATAL ERROR '
@@ -292,6 +320,17 @@
          end if
          mc = mcx + (mcy - mcx)*aj
          aj = tscls(2) + aj*tscls(3)
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* CCCCCCCC - Albrecht - 03.08.2020                                             *
+* simply make a white dwarf if the mass is too small to be accommodated        *
+* by a core-mass on the hb. must have been a case of a low-mass wd with a      *
+* very small envelope mass added so assume this is quickly burnt.              *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+         if(m0.le.mcx.or.mc.ge.m0)then
+            kw = 11
+            mc = m0
+            aj = 0.d0
+         endif
       endif
 *
       RETURN
