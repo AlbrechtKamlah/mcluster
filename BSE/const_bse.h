@@ -5,24 +5,17 @@
       COMMON /VALUE3/ idum
       INTEGER idum2,iy,ir(32)
       COMMON /RAND3/ idum2,iy,ir
-      INTEGER ktype(0:15,0:15)
+      INTEGER ktype(0:14,0:14)
       COMMON /TYPES/ ktype
-      INTEGER ceflag,tflag,ifflag,nsflag
-      INTEGER wdflag,psflag,ecflag
+      INTEGER ceflag,tflag,ifflag,nsflag,wdflag
       COMMON /FLAGS/ ceflag,tflag,ifflag,nsflag,wdflag
-      COMMON /FLAGS1/ psflag,ecflag
-      INTEGER mdflag
-      COMMON /FLAGS2/ mdflag
-      INTEGER kmech
-      COMMON /FLAGS3/kmech 
       INTEGER bhflag
-      REAL*8 disp
 *
       REAL*8 neta,bwind,hewind,mxns,alpha1,lambda
-      REAL*8 beta,xi,acc2,epsnov,eddfac,gamma,FctorCl
-      COMMON /VALUE1/ neta,bwind,hewind,mxns,FctorCl
+      REAL*8 sigma,beta,xi,acc2,epsnov,eddfac,gamma
+      COMMON /VALUE1/ neta,bwind,hewind,mxns
       COMMON /VALUE2/ alpha1,lambda
-      COMMON /VALUE4/ disp,BHFLAG
+      COMMON /VALUE4/ sigma,bhflag
       COMMON /VALUE5/ beta,xi,acc2,epsnov,eddfac,gamma
       REAL*8 pts1,pts2,pts3
       COMMON /POINTS/ pts1,pts2,pts3
@@ -32,9 +25,4 @@
       COMMON /SINGLE/ scm,spp
       REAL bcm(50000,34),bpp(80,10)
       COMMON /BINARY/ bcm,bpp
-      REAL*8 FBFAC,FBTOT,MCO
-      INTEGER ECS
-      COMMON /FBACK/ FBFAC,FBTOT,MCO,ECS
-      INTEGER BHSPIN
-	  COMMON /VALUE6/ BHSPIN
 *
