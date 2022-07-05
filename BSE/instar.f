@@ -6,7 +6,7 @@
 *       ------------------------
 *
       implicit none
-      integer i,j,ktype(0:14,0:14)
+      integer i,j,ktype(0:15,0:15)
       common /TYPES/ ktype
 *
 *       Initialize stellar collision matrix.
@@ -31,9 +31,12 @@
          ktype(i,i) = i
  20   continue
       ktype(5,5) = 4
-      ktype(7,7) = 1
+      ktype(7,7) = 7     ! added by Albrecht - 03.08.2020
       ktype(10,10) = 15
+*       Change for CO+CO owing to Tout theory (21/11/08).
+      ktype(11,11) = 12
       ktype(13,13) = 14
+	  ktype(11,11) = 12  ! added by Albrecht - 03.08.2020 Tout theory (21.11.2008)
       do 25 , i = 2,5
          do 30 j = i+1,12
             ktype(i,j) = 4
@@ -51,7 +54,7 @@
       ktype(6,7) = 4
       ktype(6,8) = 6
       ktype(6,9) = 6
-      ktype(6,10) = 5 
+      ktype(6,10) = 5
       ktype(6,11) = 6
       ktype(6,12) = 6
       ktype(7,8) = 8
@@ -74,6 +77,10 @@
          ktype(i,14) = 14
  35   continue
       ktype(13,14) = 14
+	  do 99, i =0,15        ! added by Albrecht - 03.08.2020
+         ktype(15,i) = i
+         ktype(i,15) = 15
+ 99   continue   
 *
 * Increase common-envelope cases by 100.
       do 40 , i = 0,9

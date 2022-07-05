@@ -7,9 +7,9 @@
       REAL*8 dt,dtr
       REAL*8 pts1,pts2,pts3
       COMMON /POINTS/ pts1,pts2,pts3
-*
-*     Base new time scale for changes in radius & mass on stellar type.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+*     Base new time scale for changes in radius & mass on stellar type.        *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       if(kw.le.1)then
          dt = pts1*tm
          dtr = tm - age

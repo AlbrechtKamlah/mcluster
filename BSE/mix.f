@@ -16,11 +16,18 @@
       REAL*8 TSCLS(20),LUMS(10),GB(10),TMS1,TMS2,TMS3,TN
       REAL*8 M01,M02,M03,M1,M2,M3,AGE1,AGE2,AGE3,MC3,MCH
       PARAMETER(MCH=1.44D0)
-      REAL*8 NETA,BWIND,HEWIND,MXNS
-      COMMON /VALUE1/ NETA,BWIND,HEWIND,MXNS
+      REAL*8 NETA,BWIND,HEWIND,MXNS,FctorCl,DM 
+      COMMON /VALUE1/ NETA,BWIND,HEWIND,MXNS,FctorCl
+	  INTEGER nsflag
+	  COMMON /FLAGS1/ nsflag
+      real*8 mxns0,mxns1                  ! added - 28.07.2020
+      parameter(mxns0=1.8d0,mxns1=2.5d0)  ! added - 28.07.2020  
 *
-*
-*       Define global indices with body #I1 being most evolved.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Define global indices with body #I1 being most evolved.                      *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      mxns = mxns0
+      if(nsflag.ge.1) mxns = mxns1
       IF(KS(1).GE.KS(2))THEN
           I1 = 1
           I2 = 2
@@ -28,26 +35,30 @@
           I1 = 2
           I2 = 1
       END IF
-*
-*       Specify case index for collision treatment.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Specify case index for collision treatment.                                  *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       K1 = KS(I1)
       K2 = KS(I2)
       ICASE = KTYPE(K1,K2)
 *     if(icase.gt.100) WRITE(66,*)' MIX ERROR ICASE>100 ',icase,k1,k2
-*
-*       Determine evolution time scales for first star.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Determine evolution time scales for first star.                              *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       M01 = M0(I1)
       M1 = M(I1)
       AGE1 = AJ(I1)
       CALL star(K1,M01,M1,TMS1,TN,TSCLS,LUMS,GB,ZPARS)
-*
-*       Obtain time scales for second star.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Obtain time scales for second star.                                          *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       M02 = M0(I2)
       M2 = M(I2)
       AGE2 = AJ(I2)
       CALL star(K2,M02,M2,TMS2,TN,TSCLS,LUMS,GB,ZPARS)
-*
-*       Check for planetary systems - defined as HeWDs and low-mass WDs!
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Check for planetary systems - defined as HeWDs and low-mass WDs!             *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       IF(K1.EQ.10.AND.M1.LT.0.05)THEN
          ICASE = K2
          IF(K2.LE.1)THEN
@@ -64,23 +75,27 @@
             AGE2 = 0.D0
          ENDIF
       ENDIF
-*
-*       Specify total mass.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Specify total mass.                                                          *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       M3 = M1 + M2
       M03 = M01 + M02
+      MC3 = 0.d0    !Kamlah 17.02.2012
       KW = ICASE
       AGE3 = 0.d0
-*
+* CCCCCCC - Albrecht - 03.08.2020 - want stars with masses larger than 100 M*
 *       Restrict merged stars to masses less than 100 Msun. 
-      IF(M3.GE.100.D0)THEN
-         M3 = 99.D0
-         M03 = MIN(M03,M3)
-      ENDIF
+*      IF(M3.GE.100.D0)THEN
+*         M3 = 99.D0
+*         M03 = MIN(M03,M3)
+*      ENDIF
 *
 *       Evaluate apparent age and other parameters.
 *
       IF(ICASE.EQ.1)THEN
-*       Specify new age based on complete mixing.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Specify new age based on complete mixing.                                    *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          IF(K1.EQ.7) KW = 7
          CALL star(KW,M03,M3,TMS3,TN,TSCLS,LUMS,GB,ZPARS)
          AGE3 = 0.1d0*TMS3*(AGE1*M1/TMS1 + AGE2*M2/TMS2)/M3
@@ -95,36 +110,52 @@
          CALL star(KW,M03,M3,TMS3,TN,TSCLS,LUMS,GB,ZPARS)
          AGE3 = TMS3*(AGE2*M2/TMS2)/M3
       ELSEIF(ICASE.LE.12)THEN
-*       Ensure that a new WD has the initial mass set correctly.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Ensure that a new WD has the initial mass set correctly.                     *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          M03 = M3
          IF(ICASE.LT.12.AND.M3.GE.MCH)THEN
             M3 = 0.D0
             KW = 15
          ENDIF
       ELSEIF(ICASE.EQ.13.OR.ICASE.EQ.14)THEN
-*       Set unstable Thorne-Zytkow object with fast mass loss of envelope 
-*       unless the less evolved star is a WD, NS or BH. 
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Set unstable Thorne-Zytkow object with fast mass loss of envelope            *
+* unless the less evolved star is a WD, NS or BH.                              *
+* Kamlah 08.03.2021 -                                                          *
+* update Jan. 2019 (Francesco Rizzuto): NS/BH increases the mass               *
+*                                             with a factor FctorCL * M2       *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          IF(K2.LT.10)THEN
-            M03 = M1
-            M3 = M1
+            M03 = M1 + FctorCl * M2
+            M3 = M1 + FctorCl * M2
+            DM = M2 * (1.0D0 - FctorCl)
+         ELSEIF(ICASE.EQ.13)THEN
+            IF(M3.GT.MXNS) KW = 14
          ENDIF
          IF(ICASE.EQ.13.AND.M3.GT.MXNS) KW = 14
       ELSEIF(ICASE.EQ.15)THEN
+         DM = M3
          M3 = 0.D0
       ELSEIF(ICASE.GT.100)THEN
-*       Common envelope case which should only be used after COMENV.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Common envelope case which should only be used after COMENV.                 * 
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          KW = K1
          AGE3 = AGE1
          M3 = M1
          M03 = M01
+         DM = M2
       ELSE
-*       This should not be reached.
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* This should not be reached.                                                  *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         KW = 1
         M03 = M3
       ENDIF
-*
-* Put the result in *1.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* Put the result in *1.                                                        *
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       KS(1) = KW
       KS(2) = 15
       M(1) = M3

@@ -1,12 +1,17 @@
 ***
       REAL*8 FUNCTION RL(Q)
       IMPLICIT NONE
+	  include 'const_bse.h'
       REAL*8 Q,P
-*
-* A function to evaluate R_L/a(q), Eggleton 1983.
-*
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+* A function to evaluate R_L/a(q), Eggleton 1983. ! changed by Albrecht 03.08.2020
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       P = Q**(1.d0/3.d0)
-      RL = 0.49d0*P*P/(0.6d0*P*P + LOG(1.d0+P))
+	  if(P.eq.0) then
+        rl = 1000.d0
+	  else
+        RL = 0.49d0*P*P/(0.6d0*P*P + LOG(1.d0+P))
+	  endif
 *
       RETURN
       END
