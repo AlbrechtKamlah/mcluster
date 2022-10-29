@@ -4,7 +4,7 @@ This code is the version of mcluster presented in the paper (appendix B)
 
 Kamlah et al. (2022a) - https://ui.adsabs.harvard.edu/abs/2022MNRAS.511.4060K/abstract 
 
-and it is forked from the mcluster version ([see here]{https://github.com/agostinolev/mcluster}) presented in 
+and it is forked from the mcluster version ([see here](https://github.com/agostinolev/mcluster)) presented in 
 
 Leveque et al. (2022) - https://ui.adsabs.harvard.edu/abs/2022MNRAS.514.5739L/abstract
 
@@ -15,7 +15,7 @@ Kamlah et al. (2022b) - https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.3266K/ab
 
 ## mcLuster - a tool to make a star cluster
 
-The original McLuster software ([see here]{https://github.com/ahwkuepper/mcluster}) is an open source code, which is
+The original McLuster software ([see here](https://github.com/ahwkuepper/mcluster)) is an open source code, which is
 used to either set up initial conditions for N-body computations or
 to generate artificial star clusters for direct investigation.
 
