@@ -13,7 +13,7 @@ This code was used in setting up initial conditions in, e.g
 
 Kamlah et al. (2022b) - https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.3266K/abstract
 
-## mcLuster - a tool to make a star cluster
+## mcluster - a tool to make a star cluster
 
 The original McLuster software ([see here](https://github.com/ahwkuepper/mcluster)) is an open source code, which is
 used to either set up initial conditions for N-body computations or
