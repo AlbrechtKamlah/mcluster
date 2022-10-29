@@ -15,8 +15,8 @@ Kamlah et al. (2022b) - https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.3266K/ab
 
 ## mcluster - a tool to make a star cluster
 
-The original McLuster software ([see here](https://github.com/ahwkuepper/mcluster)) is an open source code, which is
-used to either set up initial conditions for N-body computations or
+The original mcluster software ([see here](https://github.com/ahwkuepper/mcluster)) is an open source code, which is
+used to either set up initial conditions for _N_-body computations or
 to generate artificial star clusters for direct investigation.
 
 Kuepper et al. (2011) - https://ui.adsabs.harvard.edu/abs/2011MNRAS.417.2300K/abstract
