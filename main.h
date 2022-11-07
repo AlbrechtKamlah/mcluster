@@ -105,30 +105,32 @@ struct{
 	double bwind;
 	double hewind;
 	double mxns;
+	double FctorCl;
 } value1_;
 
 struct{
 	double pts1;
 	double pts2;
 	double pts3;
-} points_;                                                                                                              
+} points_;  
 
 struct{
-	double sigma;
+	double alpha1;
+	double lambda;
+} value2_; 
+
+struct{
+	int idum;
+} value3_;                                                                                                           
+
+struct{
+	double disp;
 	int bhflag;
 } value4_;
 
 struct{
-	int idum;
-} value3_;
-
-struct{
-	int ceflag;
-	int tflag;
-	int ifflag;
-	int nsflag;
-	int wdflag;
-} flags_;
+	int bhspin;
+} value6_;
 
 struct{
 	double beta;
@@ -140,9 +142,33 @@ struct{
 } value5_;
 
 struct{
-	double alpha1;
-	double lambda;
-} value2_;
+	int ceflag;
+	int tflag;
+	int ifflag;
+	int nsflag;
+	int wdflag;
+} flags_;
+
+struct{
+	int psflag;
+	int ecflag;
+} flags1_;
+
+struct{
+	int mdflag;
+} flags2_;
+
+struct{
+	int kmech;
+} flags3_;
+
+
+struct{
+	double fbfac;
+	double fbtot;
+    double mco;
+	double ecs;
+} fback_;
 
 //external value from mocca.ini
 extern struct
@@ -164,6 +190,21 @@ extern struct
 
 extern struct
 {
+   int bhflag,bhspin,psflag,ecflag,\
+   mdflag,kmech,ceflag,tflag,ifflag,\
+   nsflag,wdflag;
+} mclusteri1_; 
+
+extern struct
+{
+   double neta,bwind,hewind,mxns,\
+   FctorCl,pts1,pts2,pts3,disp,\
+   beta,xi,acc2,epsnov,eddfac,gamma,\
+   alpha1,lambda;
+} mclusteri2_; 
+
+extern struct
+{
    int potential_energy, tf, mclusteron,\
        seedmc, outputf, check_en, BSE;
 } mclusteri_;
@@ -179,8 +220,7 @@ extern struct
    double qvir, rbar, rh_mcl;
 } mclusterd_; 
 
-int evolve_stars(int N, double **star, double M, double epoch, double Z, int N2, int nbin);
-//int evolve_stars(int N, double **star, double M, double epoch, double Z, int N2, int nbin, FILE *TABLEkick);
+int evolve_stars(int N, double **star, double M, double epoch, double Z, int N2, int nbin, FILE *TABLEkick, FILE* TABLEsingles);
 int generate_m1(int *N, double **star, double mlow, double mup, double *M, double *mmean, double MMAX, double Mcl, double epoch, double Z, double Rh, int remnant, int N2);
 int generate_m2(int an, double *mlim, double *alpha, double Mcl, double M_tmp, double *subcount, int *N, double *mmean, double *M, double **star, double MMAX, double epoch, double Z, double Rh, int remnant, int N2);
 int generate_m3(int *N, double **star, double mlow, double mup, double *M, double *mmean, double MMAX, double Mcl, int N2);
@@ -222,7 +262,8 @@ double get_gauss(void);
 double fractalize(double D, int N, double **star, int radial, int symmetry, int N2);
 double fractalize_spherical(double D, int N, double **star, int radial, int symmetry, int N2);
 int standalone_rzamsf(double m, double *radius);
-int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis, double amin_input, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries);
+//int get_binaries(int nbin, double **star, double M, double rvir, int pairing, int *N, int adis, double amin, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries, double **cmb);
+int get_binaries(int nbin, double **mbin, double M, int pairing, int N, int adis, double amin, double amax, double Rh, int Ntot, int eigen, int BSE, double epoch, double Z, int remnant, int OBperiods, double msort, int N2, int N3, double *eccbinaries, double *abinaries, FILE *TABLEkick, FILE *TABLEbinaries);
 void shellsort_reverse_1d(double *array, int N);
 void shellsort_1d(double *array, int N);	
 void shellsort(double **array, int N, int k);
