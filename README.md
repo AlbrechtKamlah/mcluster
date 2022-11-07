@@ -1,4 +1,4 @@
-# mcluster-LevelC
+# mcluster-levelC
 
 This code is the version of mcluster presented in the paper (appendix B)
 
@@ -34,11 +34,11 @@ We define all the levels as follows (see appendix A in Kamlah et al. 2022a):
 should be enabled in the next gravitational million-body simulations.
 * Level C: stellar evolution settings that are available in the codes, but those that are not present in level B have not yet
 undergone sufficient testing and are therefore deemed experimental as of the writing of this paper.
-* Level D: stellar evolution settings that will be added in the next iteration of stellar evolution updates, see also section 5.2 for
+* Level D: stellar evolution settings that will be added in the next iteration of stellar evolution updates, see also section 5.2 of Kamlah et al. (2022a) for
 details on these.
 * ...
 
-In the more distant future, we will sequentially add new levels (the next one would be Level E), where we group further planned stellar
+In the more distant future, we will sequentially add new levels (the next one would be level E), where we group further planned stellar
 evolution updates on top of the preceding level (in this case level D) in Nbody6++GPU, MOCCA & McLuster together. We hope that
 this will greatly help in the documentation and aid the future user of the codes to properly choose SSE & BSE settings in his or her
 simulations.
