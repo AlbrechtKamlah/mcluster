@@ -68,7 +68,7 @@ void config_validate_(const char conf[10000]) {
 	int i, k, m, secCount, keysCount, found;
 	char* secName;
 	char** keys;
-	const int expectedCount = 33;
+	const int expectedCount = 60;
 	char* expected[expectedCount];
 
 	if (dict == NULL)
@@ -107,6 +107,33 @@ void config_validate_(const char conf[10000]) {
 	expected[30] = "mcluster:outputf";
 	expected[31] = "mcluster:check_en";
 	expected[32] = "mcluster:BSE";
+	expected[33] = "mcluster:pts1";
+	expected[34] = "mcluster:pts2";
+	expected[35] = "mcluster:pts3";
+	expected[36] = "mcluster:mdflag";
+	expected[37] = "mcluster:neta";
+	expected[38] = "mcluster:bwind";
+	expected[39] = "mcluster:hewind";
+	expected[40] = "mcluster:nsflag";
+	expected[41] = "mcluster:psflag";
+	expected[42] = "mcluster:ecflag";
+	expected[43] = "mcluster:ifflag";
+	expected[44] = "mcluster:wdflag";
+	expected[45] = "mcluster:mxns";
+	expected[46] = "mcluster:bhflag";
+	expected[47] = "mcluster:kmech";
+	expected[48] = "mcluster:disp";
+	expected[49] = "mcluster:bhspin";
+	expected[50] = "mcluster:beta";
+	expected[51] = "mcluster:xi";
+	expected[52] = "mcluster:acc2";
+	expected[53] = "mcluster:epsnov";
+	expected[54] = "mcluster:eddfac";
+	expected[55] = "mcluster:gamma";
+	expected[56] = "mcluster:ceflag";
+	expected[57] = "mcluster:tflag";
+	expected[58] = "mcluster:alpha1";
+	expected[59] = "mcluster:lambda";	
 
 	secCount = iniparser_getnsec(dict);
 	for (i = 0; i < secCount; ++i) {
