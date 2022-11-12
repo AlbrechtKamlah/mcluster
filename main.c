@@ -201,8 +201,7 @@ int main (int argv, char **argc) {
 	value4_.bhflag = mclusteri1_.bhflag;	    //bhflag > 0 allows velocity kick at BH formation
     value6_.bhspin = mclusteri1_.bhspin;	        //bhspin -- 0: Fuller model, 1: Geneva model, 2: MESA model 
 
-	flags1_.psflag = mclusteri1_.psflag;         //P(I)SNe PP(I)SNe schemes. 	2 is a new value
-				    //					0 is a old 
+	flags1_.psflag = mclusteri1_.psflag;         //P(I)SNe PP(I)SNe schemes. 	2 is a new value; 0 is a old 
 
 	flags1_.ecflag = mclusteri1_.ecflag;         //ECSNe 				1 is a new value
 				    //					0 is a old value
