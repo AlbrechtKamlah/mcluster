@@ -179,7 +179,7 @@ int main (int argv, char **argc) {
 	int symmetry = 1;				//Force spherical symmetry for fractal clusters; =0 off, =1 on (recommended)
 	int check = mclusteri_.check_en;					//Make energy check at end of McLuster; =0 off, =1 on
 	double Zsun = 0.02;				//Solar metallicity
-	int NMAX = 2000000;	     		//Maximum number of stars & orbits allowed in McLuster
+	int NMAX = 20000000;	     		//Maximum number of stars & orbits allowed in McLuster
 	int NNBMAX_NBODY6 = 500;		//Maximum number of neighbours allowed in NBODY6
 	double upper_IMF_limit = 150.0; //Maximum stellar mass allowed in McLuster [Msun]
 	int an[10] = {0,0,0,0,0,0,0,0,0,0};						//Counter for number of alpha slopes for mfunc = 2
