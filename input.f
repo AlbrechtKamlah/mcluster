@@ -254,7 +254,354 @@
      &        ". Please set BSE to 0 or change output "
               stop
        endif
+      
+      key = "Mcluster:pts1"
+      call config_getdouble(pts1, 0.0, key, conf);
+          print*,"pts1 =", pts1
+          if (BSE.eq.1) then
+            print*,"pts1 =", pts1
+            if (pts1.eq.0.05) then
+        print*,"pts1 = 0.05: Hurley et al. (2000)",
+     &    " = Level A,B"
+          elseif (pts1.eq.0.001) then
+        print*,"pts1 = 0.001: Banerjee et al. (2020)", 
+     &     " (Startrack vs. BSE) - Level C"
+       endif
+      endif
+ 
+      key = "Mcluster:pts2"
+      call config_getdouble(pts2, 0.0, key, conf);
+      print*,"pts2 =",pts2
+      if (BSE.eq.1) then
+        print*,"pts2 =", pts2
+        if (pts2.eq.0.01) then
+        print*,"pts2 = 0.01 [Hurley et al. (2000),",
+     &         " Banerjee et al. (2020)]",
+     &         " (Startrack vs. BSE) - Level A,B,C"
+        endif
+      endif
 
+      key = "Mcluster:pts3"
+      call config_getdouble(pts3, 0.0, key, conf);
+      print*,"pts3 =",pts3
+      if (BSE.eq.1) then
+        print*,"pts3 =", pts3
+        if (pts3.eq.0.02) then
+        print*,"pts3 = 0.02 [Hurley et al. (2000),",
+     &  " Banerjee et al. (2020)]",
+     &  " (Startrack vs. BSE) - Level A,B,C"
+        endif
+      endif
+
+      key = "Mcluster:mdflag"
+      call config_getint(mdflag, 0.0, key, conf);
+      if (BSE.eq.1) then
+      print*,"mdflag =",mdflag
+        if (mdflag.eq.1) then
+        print*,"mdflag = 1: original [Hurley et al. (2000)] - Level A"
+        elseif (mdflag.eq.2) then
+        print*,"mdflag = 2: SSE + LBV added [Hurley et al. (2000),",
+     & " Humphreys & Davidson (1994)] - Level B"
+        elseif (mdflag.eq.2) then
+        print*,"mdflag = 3: updates from [Vink et al. (2001, 2005),",
+     & " Belczynski et al. (2010)] - Level C"
+        elseif (mdflag.eq.2) then
+        print*,"mdflag = 4: 3, but without bi-stability jump,",
+     & " [Belczynski et al. (2010)] - Level C"
+       endif
+      endif
+
+      key = "Mcluster:neta"
+      call config_getdouble(neta, 0.0, key, conf);
+      print*,"neta =", neta
+      if (BSE.eq.1) then
+            print*,"neta =", neta
+      endif
+
+      key = "Mcluster:bwind"
+      call config_getdouble(bwind, 0.0, key, conf);
+      print*,"bwind =", bwind
+      if (BSE.eq.1) then
+         if (bwind.eq.0.0) then
+         print*,"bwind = 0.0 [Hurley et al. (2000)] - Level A,B,C"
+         endif
+      endif
+ 
+      key = "Mcluster:hewind"
+      call config_getdouble(hewind, 0.0, key, conf);
+      print*, "hewind", hewind
+      if (BSE.eq.1) then
+        if (hewind.eq.1.0) then
+           print*,"= 1.0 [Hurley et al. (2000)] - Level A,B,C"
+        endif
+      endif
+
+      key = "Mcluster:nsflag"
+      call config_getint(nsflag, 0, key, conf);
+      print*, "nsflag =", nsflag
+      if (BSE.eq.1) then
+        if (nsflag.eq.0) then
+            print*,"nsflag = 0: Original remnant masses",
+     & " [Hurley et al. (2000)] - Level A"
+        elseif (nsflag.eq.1) then
+        print*,"nsflag = 1: FeNi core mass [Belczynski et al. (2002)]",
+     & " - Level B"
+        elseif (nsflag.eq.2) then
+        print*,"nsflag = 2: FeNi core mass [Belczynski et al. (2008)]",
+     & " - Level C"
+        elseif (nsflag.eq.3) then
+        print*,"mdflag = 3: Rapid SNe [Fryer et al. (2012)]",
+     & " - Level C"
+        elseif (nsflag.eq.4) then
+        print*,"mdflag = 4: Delayed SNe [Fryer et al. (2012)]",
+     & " - Level C"
+       endif
+      endif
+
+
+      key = "Mcluster:psflag"
+      call config_getint(psflag, 0, key, conf);
+      print*,"psflag =", psflag
+      if (BSE.eq.1) then
+         if (psflag.eq.0) then
+            print*,"psflag = 0: No (P)PISNe - Level A"
+         elseif (psflag.eq.1) then
+            print*,"psflag = 1: Strong (P)PISNe",
+     &   " [Belczynski et al. (2016)]- Level B"
+         elseif (psflag.eq.2) then
+            print*,"psflag = 2: Moderate (P)PISNe",
+     & " [Leung et al. (2019)],",
+     & " similar to [Giacobbo et al. (2018)] - Level C"
+         elseif (psflag.eq.3) then
+            print*,"psflag = 3: Weak (P)PISNe",
+     & " [Leung et al. (2019)],",
+     & " similar to [Giacobbo et al. (2018)] - Level C"
+         endif
+      endif
+ 
+      key = "Mcluster:ecflag"
+      call config_getint(ecflag, 0, key, conf);
+      print*,"ecflag =", ecflag
+      if (BSE.eq.1) then
+        if (ecflag.eq.0) then
+        print*,"ecflag = 0: No ECSNe - Levels A, B"
+        elseif (ecflag.eq.1) then
+        print*,"ecflag = 1: Enables ECSNe [Belczynski et al. (2008)]",
+     & " with disp0 = ecsig - Level C"
+        endif
+      endif
+  
+      key = "Mcluster:ifflag"
+      call config_getint(ifflag, 0, key, conf);
+      print*,"ifflag =", ifflag
+      if (BSE.eq.1) then
+        if (ifflag.eq.0) then
+         print*,"ifflag = 0: use the mass that results",
+     & " from the evolution algorithm",
+     & " (core-mass growth vs. envelope mass-loss) - Level A,B"
+        elseif (ifflag.eq.1) then
+        print*,"ifflag = 1: IFMR following",
+     & " [Han et al. (1995)] - Level C"
+       endif
+      endif
+
+      key = "Mcluster:wdflag"
+      call config_getint(wdflag, 0, key, conf);
+      print*,"wdflag =", wdflag
+      if (BSE.eq.1) then
+        if (wdflag.eq.0) then
+          print*,"wdflag = 0: standard Mestel",
+     &    " cooling [Mestel (1952)] - Level A"
+        elseif (wdflag.eq.1) then
+          print*,"wdflag = 1: modified Mestel",
+     & " cooling [Hurley & Shara (2003)]", 
+     & " - Levels B,C"
+        endif
+      endif
+
+      key = "Mcluster:mxns"
+      call config_getdouble(mxns, 0.0, key, conf);
+      print*,"mxns =", mxns
+      if (BSE.eq.1) then
+        if (mxns.eq.3.0) then
+        print*,"mxns = 3.0: Follows from causality",
+     &  " [Hurley et al. (2000),",
+     &  " Lattimer & Prakash (2004)] - Level A"
+        elseif (mxns.eq.2.5) then
+        print*,"mxns = 2.5: From [Fryer et al. (2012)]",
+     &  " and GW detections - Level B,C"
+        endif
+      endif
+
+      key = "Mcluster:bhflag"
+      call config_getint(bhflag, 0, key, conf);
+      print*,"bhflag =", bhflag
+      if (BSE.eq.1) then
+        if (bhflag.eq.0) then
+        print*,"bhflag = 0: no BH kick. - Level A"
+        elseif (bhflag.eq.1) then
+        print*,"bhflag = 1: same as for the regular NSs but scaled",
+     & " by fallback - Level B"
+        endif
+      endif  
+ 
+      key = "Mcluster:kmech"
+      call config_getint(kmech, 0, key, conf);
+      print*,"kmech =", kmech
+      if (BSE.eq.1) then
+        if (kmech.eq.1) then
+          print*,"kmech = 1: standard momentum-conserving",
+     &  " [Banerjee et al. (2020)] (Startrack vs. BSE) - Level B"
+        elseif (kmech.eq.2) then
+          print*,"kmech = 2: convection-asymmetry-driven",
+     &  " [Banerjee et al. (2020)] (Startrack vs. BSE) - Level C"
+        elseif (kmech.eq.3) then
+          print*,"kmech = 3: collapse-asymmetry-driven",
+     &   " [Banerjee et al. (2020)] (Startrack vs. BSE) - Level C"
+       elseif (kmech.eq.4) then
+          print*,"kmech = 4: neutrino-driven [Banerjee",
+     &    " et al. (2020)] (Startrack vs. BSE) - Level C"
+       endif
+      endif 
+
+      key = "Mcluster:disp"
+      call config_getdouble(disp, 0.0, key, conf);
+      print*,"disp =", disp
+      if (BSE.eq.1) then
+        if (disp.eq.190.0) then
+          print*,"disp = 190 km/s following [Hurley",
+     & " et al. (2000)] - Level A"
+      elseif (disp.eq.265.0) then
+          print*,"disp = 265 km/s following [Hobbs et al. (2005)",
+     & " Belczynski et al. (2008)] - Level B,C"
+      endif
+      endif
+
+      key = "Mcluster:bhspin"
+      call config_getint(bhspin, 0, key, conf);
+      print*,"bhspin =", bhspin
+      if (BSE.eq.1) then
+        if (bhspin.eq.0) then
+           print*,"bhspin = 0: Fuller model [Belczinsky",
+     & " & Banerjee (2020)] - Level C"
+        elseif (bhspin.eq.1) then
+           print*,"bhspin = 1: Geneva model [Belczinsky",
+     & " & Banerjee (2020)] - Level C"
+        elseif (bhspin.eq.2) then
+          print*,"bhspin = 2: MESA model [Belczinsky",
+     & " & Banerjee (2020)] - Level C"
+       endif
+      endif 
+
+      key = "Mcluster:beta"
+      call config_getdouble(beta, 0.0, key, conf);
+      print*,"beta =", beta
+      if (BSE.eq.1) then
+        if (beta.eq.0.125) then
+        print*,"beta = 0.125 (does not depend on stellar",
+     & " type - Level A,B,C"
+        endif
+      endif
+
+      key = "Mcluster:xi"
+      call config_getdouble(xi, 0.0, key, conf);
+      print*,"xi =", xi
+      if (BSE.eq.1) then
+        if (xi.eq.1.0) then
+          print*,"xi = 1 from [Hurley et al. (2002)]"
+        endif
+      endif
+
+      key = "Mcluster:acc2"
+      call config_getdouble(acc2, 0.0, key, conf);
+      print*,"acc2 =", acc2
+      if (BSE.eq.1) then
+        if (acc2.eq.1.5) then
+           print*,"acc2 = 1.5 from [Bondi-Hoyle (1944),",
+     &     " [Hurley et al. (2002)]"
+        endif
+      endif
+ 
+      key = "Mcluster:epsnov"
+      call config_getdouble(epsnov, 0.0, key, conf);
+      print*,"epsnov =", epsnov
+      if (BSE.eq.1) then
+        if (epsnov.eq.0.001) then
+         print*,"epsnov = 0.001 from [Hurley et al. (2002)]"
+        endif
+      endif
+ 
+      key = "Mcluster:eddfac"
+      call config_getdouble(eddfac, 0.0, key, conf);
+      print*,"eddfac =", eddfac
+      if (BSE.eq.1) then
+         if (eddfac.eq.100) then
+             print*,"eddfac = 100 Eddington limit",
+     &         " accretion rate [Hurley et al. (2002)]"
+        endif
+      endif
+  
+      key = "Mcluster:gamma"
+      call config_getdouble(gamma, 0.0, key, conf);
+      print*,"gamma =", gamma
+      if (BSE.eq.1) then
+        if (gamma.gt.0) then
+          print*,"> 0.0  takes away a fraction gamma of",
+     &         " the orbital angular momentum [Hurley et",
+     &         " al. (2002)] - Level A,B"
+        elseif (gamma.eq.-1.0) then
+          print*,"gamma = = -1.0 then assume the lost material",
+     &   " carries with it the specific angular momentum of the",
+     &   " primary [Hurley et al. (2002)] - Level C"
+        elseif (gamma.eq.-2.0) then
+          print*,"gamma = -2.0 assume that material is lost from",
+     &   " the system as if a wind from the secondary [Hurley",
+     &   " et al. (2002)] - Level C"
+        endif
+      endif
+  
+      key = "Mcluster:ceflag"
+      call config_getint(ceflag, 0, key, conf);
+      print*,"ceflag =", ceflag
+      if (BSE.eq.1) then
+       if (ceflag.gt.0) then
+         print*,"ceflag > 0: activates spin-energy correction",
+     &   " in common-envelope - Level A"
+       elseif (ceflag.eq.1) then
+         print*,"ceflag = 3: de Kool (or Podsiadlowski)",
+     & " model [de Kool (1990)] - Level C"
+       endif
+      endif 
+
+      key = "Mcluster:tflag"
+      call config_getint(tflag, 0, key, conf);
+      print*,"tflag =", tflag
+      if (BSE.eq.1) then
+        if (tflag.eq.0) then
+           print*,"tflag = 0: no tidal circularisation - Level A,B"
+        elseif (tflag.eq.1) then
+           print*,"tflag = 1: tidal circularisation",
+     & " [Hurley et al. (2002)] - Level C"
+        endif
+      endif   
+
+      key = "Mcluster:alpha1"
+      call config_getdouble(alpha1, 0.0, key, conf);
+      print*,"alpha1 =", alpha1
+      if (BSE.eq.1) then
+        if (alpha1.eq.1.0) then
+          print*,"alpha1 = 1.0 from [Hurley et al. (2002)]"
+        endif
+      endif  
+ 
+      key = "Mcluster:lambda"
+      call config_getdouble(lambda, 0.0, key, conf);
+      print*,"lambda =", lambda
+      if (BSE.eq.1) then
+        if (lambda.eq.0.5) then
+           print*,"lambda = 0.5 from [Hurley et al. (2002)]"
+        endif
+      endif
 *
       return
 *
