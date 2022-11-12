@@ -14,6 +14,15 @@
      &       equalmass, mlow, mup, alpha_L3,
      &       beta_L3, mu_L3, amin, amax, epoch_pop,
      &       zini_pop, fractal, fracb_reference
+	 
+	 REAL(KIND=8) neta,bwind,hewind,mxns,
+     & FctorCl,pts1,pts2,pts3,disp,
+     & beta,xi,acc2,epsnov,eddfac,gamma,
+     & alpha1,lambda
+	 
+	 integer bhflag,bhspin,psflag,ecflag,
+     & mdflag,kmech,ceflag,tflag,ifflag,
+     & nsflag,wdflag
 
       character(len=1000) :: npopchar,fracbchar, initmodelchar, w0char,
      &       conc_popchar, Segchar, fractalchar,
@@ -36,3 +45,13 @@
 
       common /mclusterd/ qvir, rbar, rh_mcl
       common /mclusterchar/ alphaimfchar, mlimimfchar
+	  
+      common /mclusteri1/ bhflag,bhspin,psflag,ecflag,
+     & mdflag,kmech,ceflag,tflag,ifflag,
+     & nsflag,wdflag
+	  
+      common /mclusteri2/ neta,bwind,hewind,mxns,
+     & FctorCl,pts1,pts2,pts3,disp,
+     & beta,xi,acc2,epsnov,eddfac,gamma,
+     & alpha1,lambda
+
