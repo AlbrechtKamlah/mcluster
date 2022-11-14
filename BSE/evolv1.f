@@ -44,7 +44,8 @@ c-------------------------------------------------------------c
     real*8 epoch,tphys,tphys2,tmold,tbgold
     real*8 mt,tm,tn,tphysf,dtp,tsave
     real*8 tscls(20),lums(10),GB(10),zpars(20)
-    real*8 r,lum,mc,teff,rc,menv,renv,vs(3), vkick
+    real*8 r,lum,mc,teff,rc,menv,renv,vs(3), vki
+    ck
     real*8 ospin,jspin,djt,djmb,k2,k3
     parameter(k3=0.21d0)
     real*8 m0,r1,lum1,mc1,rc1,menv1,renv1,k21
