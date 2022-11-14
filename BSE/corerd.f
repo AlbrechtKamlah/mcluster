@@ -1,5 +1,5 @@
 ***
-      REAL*8 FUNCTION CORERD(KW,MC,M0,MFLASH)
+REAL*8 FUNCTION CORERD(KW,MC,M0,MFLASH)
 *     
 * A function to determine the radius of the core of a giant-like star.
 * NOTE: this is out of date so rc should be obtained using HRDIAG!
